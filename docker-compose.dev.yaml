@@ -46,10 +46,25 @@ services:
       - "443:443"
     volumes:
       - ./nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
-      - ./nginx/certs/fullchain.pem:/etc/nginx/certs/fullchain.pem
-      - ./nginx/certs/privkey.pem:/etc/nginx/certs/privkey.pem
+      - ./nginx/certbot/www:/var/www/certbot
+      - ./nginx/certbot/conf:/etc/letsencrypt
     depends_on:
       - fastapi
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./nginx/certbot/www:/var/www/certbot
+      - ./nginx/certbot/conf:/etc/letsencrypt
+    command: [
+      "certonly",
+      "--webroot",
+      "--webroot-path=/var/www/certbot",
+      "--agree-tos",
+      "--no-eff-email",
+      "--email", "kcw2371@gmail.com",
+      "-d", "api.gaemischool.com"
+    ]
 
 
 volumes:
