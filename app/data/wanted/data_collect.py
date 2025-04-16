@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 from selenium import webdriver
@@ -9,84 +10,122 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 
+from app.data.wanted.dto import JobData, TooltipData
+from app.module.asset.model import Job, JobGroup, SalaryStat
+from app.module.asset.repository.job_group_repository import JobGroupRepository
+from app.module.asset.repository.job_repository import JobRepository
+from app.module.asset.repository.salary_stat_repository import SalaryStatRepository
+from database.dependency import get_mysql_session
+
 # [참조 링크] https://www.wanted.co.kr/salary/숫자
 
 
-chrome_options = Options()
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-dev-shm-usage")
-chrome_options.add_argument("--window-size=1200,800")
-chrome_options.add_argument("--enable-automation")
+async def get_wanted_job_num_preset(number: int, driver: webdriver.Chrome) -> JobData | None:
+    driver.get(f"https://www.wanted.co.kr/salary/{number}")
 
-chrome_options.add_argument(
-    "user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/89.0.4389.90 Safari/537.36"
-)
-chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-chrome_options.add_experimental_option("useAutomationExtension", False)
-chrome_options.add_argument("--headless")
+    wait = WebDriverWait(driver, 10)
 
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
-driver.get("https://www.wanted.co.kr/salary/10110")
+    rectangles = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "path.recharts-rectangle")))
+    actions = ActionChains(driver)
+    tooltip_data = {}
 
-wait = WebDriverWait(driver, 10)
+    for idx, rect in enumerate(rectangles):
+        actions.move_to_element(rect).perform()
 
+        try:
+            tooltip = WebDriverWait(driver, 5).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, ".recharts-tooltip-wrapper"))
+            )
+            text = tooltip.text.strip()
+            lines = text.splitlines()
+            if len(lines) >= 2:
+                exp_str = lines[0].strip()
+                salary_str = lines[1].strip()
 
-rectangles = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "path.recharts-rectangle")))
-actions = ActionChains(driver)
-tooltip_data = {}  # {경력: 연봉} 형태의 데이터 저장
+                years = 0 if exp_str == "신입" else int(exp_str.replace("년", "").strip())
+                salary_num = int(salary_str.replace(",", "").replace("만원", "").strip())
+                tooltip_data[years] = salary_num
+        except Exception:
+            return None
 
-for idx, rect in enumerate(rectangles):
-    actions.move_to_element(rect).perform()
+        time.sleep(0.5)
 
     try:
-        tooltip = WebDriverWait(driver, 5).until(
-            EC.visibility_of_element_located((By.CSS_SELECTOR, ".recharts-tooltip-wrapper"))
+        job_group_select = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'select[title="직군"]')))
+        job_group = Select(job_group_select).first_selected_option.text.strip()
+    except Exception:
+        return None
+
+    try:
+        job_select = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'select[title="직무"]')))
+        job = Select(job_select).first_selected_option.text.strip()
+    except Exception:
+        return None
+
+    tooltip_data_list = [TooltipData(experience=year, salary=salary) for year, salary in tooltip_data.items()]
+
+    return JobData(job_group=job_group, job=job, tooltip_data=tooltip_data_list)
+
+
+async def main():
+    async with get_mysql_session() as session:
+        chrome_options = Options()
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--window-size=1200,800")
+        chrome_options.add_argument("--enable-automation")
+
+        chrome_options.add_argument(
+            "user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/89.0.4389.90 Safari/537.36"
         )
-        text = tooltip.text.strip()
-        lines = text.splitlines()
-        if len(lines) >= 2:
-            exp_str = lines[0].strip()
-            salary_str = lines[1].strip()
+        chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        chrome_options.add_experimental_option("useAutomationExtension", False)
+        chrome_options.add_argument("--headless")
 
-            years = 0 if exp_str == "신입" else int(exp_str.replace("년", "").strip())
-            salary_num = int(salary_str.replace(",", "").replace("만원", "").strip())
-            tooltip_data[years] = salary_num
-            print(f"Tooltip {idx + 1}: {years} -> {salary_num}")
-        else:
-            print(f"Tooltip {idx + 1} 텍스트 형식 오류: {text}")
-    except Exception as e:
-        print(f"Tooltip {idx + 1}를 찾지 못했습니다. 에러: {e}")
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
-    time.sleep(0.5)
+        for job_num in range(507, 15000):
+            preset_data: JobData | None = await get_wanted_job_num_preset(job_num, driver)
 
-# 2. select 요소 값 추출 (title: "직군", "직무", "경력")
-try:
-    job_group_select = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'select[title="직군"]')))
-    job_group = Select(job_group_select).first_selected_option.text.strip()
-except Exception as e:
-    print(f'"직군" select 요소를 찾지 못했습니다: {e}')
-    job_group = None
+            if not preset_data:
+                continue
 
-try:
-    job_select = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'select[title="직무"]')))
-    job = Select(job_select).first_selected_option.text.strip()
-except Exception as e:
-    print(f'"직무" select 요소를 찾지 못했습니다: {e}')
-    job = None
+            job_group_name = preset_data.job_group
+            job_name = preset_data.job
+            tooltip_data_list: dict = preset_data.tooltip_data
 
-try:
-    year_select = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'select[title="경력"]')))
-    selected_year = Select(year_select).first_selected_option.text.strip()
-    selected_year = 0 if selected_year == "신입" else selected_year
-except Exception as e:
-    print(f'"경력" select 요소를 찾지 못했습니다: {e}')
-    selected_year = None
+            job_group: JobGroup = await JobGroupRepository.get(session, job_group_name)
 
-# 3. 최종 결과 객체 생성 및 출력
-result = {"job_group": job_group, "job": job, "year": selected_year, "tooltip_data": tooltip_data}
+            if not job_group:
+                job_group: JobGroup = JobGroup(name=job_group_name)
+                await JobGroupRepository.save(session, job_group)
 
-driver.quit()
+            job = await JobRepository.get(session, job_group.id, job_name)
+            if not job:
+                job = Job(group_id=job_group.id, name=job_name)
+                job = await JobRepository.save(session, job)
 
-print("최종 결과:", result)
+            for tooltip_data in tooltip_data_list:
+                tooltip_data: TooltipData
+                lower = int(tooltip_data.salary * 0.7)
+                upper = int(tooltip_data.salary * 1.3)
+
+                salary_stat = await SalaryStatRepository.get(session, job.id, tooltip_data.experience)
+
+                if not salary_stat:
+                    salary_stat = SalaryStat(
+                        job_id=job.id,
+                        experience=tooltip_data.experience,
+                        avg=tooltip_data.salary,
+                        lower=lower,
+                        upper=upper,
+                    )
+                    await SalaryStatRepository.save(session, salary_stat)
+
+        driver.quit()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

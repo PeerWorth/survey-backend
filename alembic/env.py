@@ -6,14 +6,23 @@ from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 from app.module.asset.model import MySQLBase
+from database.enum import EnvironmentType
 
 load_dotenv()
 
-ALEMBIC_MYSQL_URL = getenv("ALEMBIC_MYSQL_URL")
+ENVIRONMENT = getenv("ENVIRONMENT", None)
+
+if ENVIRONMENT == EnvironmentType.LOCAL.value or ENVIRONMENT == EnvironmentType.TEST.value:
+    ALEMBIC_MYSQL_URL = getenv("ALEMBIC_DEV_MYSQL_URL")
+elif ENVIRONMENT == EnvironmentType.PROD.value:
+    ALEMBIC_MYSQL_URL = getenv("ALEMBIC_PROD_MYSQL_URL")
+else:
+    raise ValueError(f"{ENVIRONMENT} 환경변수 설정이 잘못되었습니다.")
 
 
 config = context.config
 
+print(ALEMBIC_MYSQL_URL)
 
 config.set_main_option("sqlalchemy.url", ALEMBIC_MYSQL_URL)
 fileConfig(config.config_file_name)

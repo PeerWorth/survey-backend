@@ -1,13 +1,6 @@
-from datetime import datetime
-from zoneinfo import ZoneInfo
-
 from sqlalchemy import Boolean, Column, DateTime
 
-KST = ZoneInfo("Asia/Seoul")
-
-
-def current_time_kst():
-    return datetime.now(KST)
+from app.common.utils.time import current_time_kst
 
 
 class TimestampMixin:
