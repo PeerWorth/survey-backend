@@ -86,7 +86,7 @@ async def main():
 
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
-        for job_num in range(507, 15000):
+        for job_num in range(507, 10571):
             preset_data: JobData | None = await get_wanted_job_num_preset(job_num, driver)
 
             if not preset_data:
