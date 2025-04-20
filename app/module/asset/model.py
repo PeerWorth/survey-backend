@@ -35,18 +35,23 @@ class SalarySubmission(TimestampMixin, MySQLBase):
     experience = Column(Integer, nullable=False)
     salary = Column(Integer, nullable=False)
 
+    age_group = Column(Integer, nullable=True, info={"label": "나이대, enum으로 별도 관리"})
+
     job = relationship("Job", back_populates="submissions")
 
 
 class SalaryStat(TimestampMixin, MySQLBase):
     __tablename__ = "salary_stat"
-    __table_args__ = (UniqueConstraint("job_id", "experience", name="uniq_job_years"),)
+    __table_args__ = (UniqueConstraint("job_id", "experience", "age_group", name="uniq_stat_combo"),)
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    job_id = Column(Integer, ForeignKey("job.id"), nullable=False)
-    experience = Column(Integer, nullable=False, info={"label": "경력 년차"})
-    avg = Column(Integer, nullable=False, info={"label": "평균"})
-    lower = Column(Integer, nullable=False, info={"label": "하위 25%"})
-    upper = Column(Integer, nullable=False, info={"label": "상위 25%"})
+    job_id = Column(Integer, ForeignKey("job.id"), nullable=True, index=True)
+    experience = Column(Integer, nullable=True, info={"label": "경력 년차"})
+
+    age_group = Column(Integer, nullable=True, info={"label": "나이대, enum으로 별도 관리"})
+
+    lower = Column(Integer, nullable=False)
+    avg = Column(Integer, nullable=False)
+    upper = Column(Integer, nullable=False)
 
     job = relationship("Job", back_populates="stats")

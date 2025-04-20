@@ -50,6 +50,7 @@ webdriver-manager = "^4.0.2"
 aiomysql = "^0.2.0"
 redis = "^5.2.1"
 tzdata = "^2025.2"
+pandas = "^2.2.3"
 
 
 [build-system]

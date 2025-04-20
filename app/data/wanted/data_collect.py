@@ -10,7 +10,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 
-from app.data.wanted.dto import JobData, TooltipData
+from app.data.wanted.source.constant import JOB_KEYS
+from app.data.wanted.source.dto import JobData, TooltipData
 from app.module.asset.model import Job, JobGroup, SalaryStat
 from app.module.asset.repository.job_group_repository import JobGroupRepository
 from app.module.asset.repository.job_repository import JobRepository
@@ -86,10 +87,11 @@ async def main():
 
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
-        for job_num in range(507, 10571):
+        for job_num in JOB_KEYS:
             preset_data: JobData | None = await get_wanted_job_num_preset(job_num, driver)
 
             if not preset_data:
+                print(job_num)
                 continue
 
             job_group_name = preset_data.job_group
