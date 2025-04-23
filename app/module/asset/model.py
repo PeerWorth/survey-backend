@@ -32,10 +32,10 @@ class SalarySubmission(TimestampMixin, MySQLBase):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     job_id = Column(Integer, ForeignKey("job.id"), nullable=False)
-    experience = Column(Integer, nullable=False)
-    salary = Column(Integer, nullable=False)
-
-    age_group = Column(Integer, nullable=True, info={"label": "나이대, enum으로 별도 관리"})
+    experience = Column(Integer, nullable=False, comment="경력")
+    salary = Column(Integer, nullable=False, comment="연봉")
+    age = Column(Integer, nullable=True, comment="나이")
+    gender = Column(String(10), nullable=True, comment="성별")
 
     job = relationship("Job", back_populates="submissions")
 
@@ -46,9 +46,9 @@ class SalaryStat(TimestampMixin, MySQLBase):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     job_id = Column(Integer, ForeignKey("job.id"), nullable=True, index=True)
-    experience = Column(Integer, nullable=True, info={"label": "경력 년차"})
+    experience = Column(Integer, nullable=True, comment="경력")
 
-    age_group = Column(Integer, nullable=True, info={"label": "나이대, enum으로 별도 관리"})
+    age_group = Column(Integer, nullable=True, comment="나이대")
 
     lower = Column(Integer, nullable=False)
     avg = Column(Integer, nullable=False)

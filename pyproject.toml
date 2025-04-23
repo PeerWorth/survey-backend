@@ -11,6 +11,7 @@ use_parentheses = true
 line_length = 120
 
 [tool.mypy]
+python_version = "3.12"
 files = ["app", "data", "dependencies", "tests"]
 ignore_missing_imports = true
 strict_optional = true
@@ -51,6 +52,7 @@ aiomysql = "^0.2.0"
 redis = "^5.2.1"
 tzdata = "^2025.2"
 pandas = "^2.2.3"
+typing-extensions = "^4.13.2"
 
 
 [build-system]

@@ -14,8 +14,7 @@ class JobRepository:
             await session.commit()
             await session.refresh(job)
             return job
-        except IntegrityError as e:
-            print(e)
+        except IntegrityError:
             await session.rollback()
             return None
 
