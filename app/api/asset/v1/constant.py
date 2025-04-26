@@ -1,0 +1,1 @@
+REDIS_KEY_RATE_LIMIT_SALARY_SUBMIT = "salary_submit"
