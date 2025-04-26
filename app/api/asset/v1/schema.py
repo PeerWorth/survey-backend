@@ -1,5 +1,3 @@
-from typing import Self  # type: ignore[attr-defined]
-
 from pydantic import BaseModel, Field
 
 from app.module.asset.enum import Gender
@@ -11,18 +9,12 @@ class BaseReponse(BaseModel):
 
 
 class SubmissionPostRequest(BaseModel):
-    job: str = Field(..., description="직무")
-    experience: int = Field(..., description="경력")
-    salary: int = Field(..., description="연봉")
-    save_rate: int = Field(..., description="저축률")
-    age: int | None = Field(None, description="나이")
+    job_id: int = Field(..., description="직무")
+    experience: int = Field(..., ge=0, description="경력")
+    salary: int = Field(..., gt=0, description="연봉")
+    save_rate: int = Field(..., ge=0, le=100, description="저축률")
+    age: int | None = Field(None, ge=20, le=70, description="나이")
     gender: Gender | None = Field(None, description="성별")
 
     class Config:
         use_enum_values = True
-
-    @classmethod
-    def validate(cls, request_data: Self):
-
-        # TODO: 요청 body값 검증 필요
-        pass

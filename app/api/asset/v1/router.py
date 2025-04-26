@@ -3,7 +3,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.asset.v1.schema import BaseReponse, SubmissionPostRequest
 from app.module.asset.dependencies.salary_dependency import get_salary_service
-from app.module.asset.dto import SalarySubmissionData
 from app.module.asset.services.salary_service import SalaryService
 from database.dependency import get_mysql_session_router
 
@@ -16,8 +15,7 @@ async def submit_user_information(
     session: AsyncSession = Depends(get_mysql_session_router),
     salary_service: SalaryService = Depends(get_salary_service),
 ) -> BaseReponse:
-    submission_data = SalarySubmissionData(**request_data.model_dump())
-    saved = await salary_service.save_salary_submission(session, submission_data)
+    saved = await salary_service.save_salary_submission(session, request_data)
 
     return (
         BaseReponse(status_code=status.HTTP_201_CREATED, detail="성공적으로 저장하였습니다.")

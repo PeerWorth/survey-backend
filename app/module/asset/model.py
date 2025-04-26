@@ -34,6 +34,7 @@ class SalarySubmission(TimestampMixin, MySQLBase):
     job_id = Column(Integer, ForeignKey("job.id"), nullable=False)
     experience = Column(Integer, nullable=False, comment="경력")
     salary = Column(Integer, nullable=False, comment="연봉")
+    save_rate = Column(Integer, nullable=False, comment="저축률")
     age = Column(Integer, nullable=True, comment="나이")
     gender = Column(String(10), nullable=True, comment="성별")
 

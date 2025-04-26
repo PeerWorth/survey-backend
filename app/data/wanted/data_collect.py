@@ -13,9 +13,9 @@ from webdriver_manager.chrome import ChromeDriverManager
 from app.data.wanted.source.constant import JOB_KEYS
 from app.data.wanted.source.dto import JobData, TooltipData
 from app.module.asset.model import Job, JobGroup, SalaryStat
-from app.module.asset.repository.job_group_repository import JobGroupRepository
-from app.module.asset.repository.job_repository import JobRepository
-from app.module.asset.repository.salary_stat_repository import SalaryStatRepository
+from app.module.asset.repositories.job_group_repository import JobGroupRepository
+from app.module.asset.repositories.job_repository import JobRepository
+from app.module.asset.repositories.salary_stat_repository import SalaryStatRepository
 from database.dependency import get_mysql_session
 
 # [참조 링크] https://www.wanted.co.kr/salary/숫자
