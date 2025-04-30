@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import BigInteger, Boolean, Column, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from app.common.mixin.timestamp import TimestampMixin
@@ -23,22 +23,8 @@ class Job(TimestampMixin, MySQLBase):
     name = Column(String(100), nullable=False)
 
     group = relationship("JobGroup", back_populates="jobs")
-    submissions = relationship("SalarySubmission", back_populates="job")
+    salary = relationship("UserSalary", back_populates="job")
     stats = relationship("SalaryStat", back_populates="job")
-
-
-class SalarySubmission(TimestampMixin, MySQLBase):
-    __tablename__ = "salary_submission"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    job_id = Column(Integer, ForeignKey("job.id"), nullable=False)
-    experience = Column(Integer, nullable=False, comment="경력")
-    salary = Column(Integer, nullable=False, comment="연봉")
-    save_rate = Column(Integer, nullable=False, comment="저축률")
-    age = Column(Integer, nullable=True, comment="나이")
-    gender = Column(String(10), nullable=True, comment="성별")
-
-    job = relationship("Job", back_populates="submissions")
 
 
 class SalaryStat(TimestampMixin, MySQLBase):
@@ -56,3 +42,34 @@ class SalaryStat(TimestampMixin, MySQLBase):
     upper = Column(Integer, nullable=False)
 
     job = relationship("Job", back_populates="stats")
+
+
+class UserSalary(TimestampMixin, MySQLBase):
+    __tablename__ = "user_salary"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(
+        BigInteger,
+        ForeignKey("user.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    job_id = Column(Integer, ForeignKey("job.id"), nullable=False)
+    experience = Column(Integer, nullable=False, comment="경력")
+    salary = Column(Integer, nullable=False, comment="연봉")
+
+    user = relationship("User", back_populates="salary")
+    job = relationship("Job", back_populates="salary")
+    profile = relationship("UserProfile", back_populates="salary", uselist=False)
+
+
+class UserProfile(TimestampMixin, MySQLBase):
+    __tablename__ = "user_profile"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    salary_id = Column(Integer, ForeignKey("user_salary.id", ondelete="CASCADE"), nullable=False, unique=True)
+    age = Column(Integer, nullable=True, comment="나이")
+    gender = Column(String(10), nullable=True, comment="성별")
+    save_rate = Column(Integer, nullable=True, comment="저축률")
+    has_car = Column(Boolean, nullable=True, comment="자동차 보유 여부")
+
+    salary = relationship("UserSalary", back_populates="profile")
