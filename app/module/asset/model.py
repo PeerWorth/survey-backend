@@ -50,7 +50,7 @@ class UserSalary(TimestampMixin, MySQLBase):
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(
         BigInteger,
-        ForeignKey("user.id", ondelete="SET NULL"),
+        ForeignKey("user.id", ondelete="CASCADE"),
         nullable=True,
     )
     job_id = Column(Integer, ForeignKey("job.id"), nullable=False)
@@ -68,7 +68,7 @@ class UserProfile(TimestampMixin, MySQLBase):
     id = Column(Integer, primary_key=True, autoincrement=True)
     salary_id = Column(Integer, ForeignKey("user_salary.id", ondelete="CASCADE"), nullable=False, unique=True)
     age = Column(Integer, nullable=True, comment="나이")
-    gender = Column(String(10), nullable=True, comment="성별")
+    gender = Column(Boolean, nullable=True, comment="성별")
     save_rate = Column(Integer, nullable=True, comment="저축률")
     has_car = Column(Boolean, nullable=True, comment="자동차 보유 여부")
 

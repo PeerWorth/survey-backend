@@ -4,7 +4,7 @@ import pandas as pd
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.data.wage_center.constant import AGE_GROUP_WAGE_PATH
-from app.module.asset.enum import AgeGroup
+from app.module.asset.enums import AgeGroup
 from app.module.asset.model import SalaryStat
 from app.module.asset.repositories.salary_stat_repository import SalaryStatRepository
 from database.dependency import get_mysql_session

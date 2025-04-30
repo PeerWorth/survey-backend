@@ -7,17 +7,25 @@ from database.config import MySQLBase
 
 class User(TimestampMixin, MySQLBase):
     __tablename__ = "user"
-
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     email = Column(String(255), nullable=False, unique=True)
+
+    consent = relationship(
+        "UserEventConsent", back_populates="user", cascade="all, delete-orphan", passive_deletes=True
+    )
+    salary = relationship(
+        "UserSalary",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
 
 
 class UserEventConsent(TimestampMixin, MySQLBase):
     __tablename__ = "user_consent"
-
     id = Column(BigInteger, primary_key=True, autoincrement=True)
-    user_id = Column(BigInteger, ForeignKey("user.id"), nullable=False)
+    user_id = Column(BigInteger, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     event = Column(String(255), nullable=False)
     agree = Column(Boolean, nullable=False)
 
-    user = relationship("User", back_populates="constents")
+    user = relationship("User", back_populates="consent")

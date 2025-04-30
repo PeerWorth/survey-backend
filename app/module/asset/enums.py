@@ -1,4 +1,4 @@
-from enum import IntEnum, StrEnum
+from enum import IntEnum
 
 
 class AgeGroup(IntEnum):
@@ -14,6 +14,6 @@ class AgeGroup(IntEnum):
     OVER_60 = 10
 
 
-class Gender(StrEnum):
-    MALE = "남"
-    FEMALE = "여"
+class Gender(IntEnum):
+    MALE = 0
+    FEMALE = 1
