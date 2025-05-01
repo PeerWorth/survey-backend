@@ -1,4 +1,3 @@
-# app/module/asset/repositories/abstract_repository.py
 from abc import ABC, abstractmethod
 from typing import Any, Generic, Optional, TypeVar
 

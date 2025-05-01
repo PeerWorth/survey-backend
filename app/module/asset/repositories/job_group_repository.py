@@ -1,26 +1,18 @@
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.module.asset.model import JobGroup
+from app.module.asset.repositories.abstract_repository import BaseRepository
 
 
-class JobGroupRepository:
-    @classmethod
-    async def save(cls, session: AsyncSession, job_group: JobGroup) -> JobGroup | None:
-        session.add(job_group)
+class JobGroupRepository(BaseRepository):
+    async def save(self, instance: JobGroup) -> JobGroup | None:
+        self.session.add(instance)
+        return await self.commit_and_refresh(instance)
 
-        try:
-            await session.commit()
-            await session.refresh(job_group)
-            return job_group
-        except IntegrityError as e:
-            print(e)
-            await session.rollback()
-            return None
+    async def get(self, jog_group_id: int) -> JobGroup | None:
+        return await self._get_by_id(JobGroup, jog_group_id)
 
-    @classmethod
-    async def get(cls, session: AsyncSession, name: str) -> JobGroup | None:
+    async def get_by_name(self, name: str) -> JobGroup | None:
         query = select(JobGroup).where(JobGroup.name == name)
-        result = await session.execute(query)
+        result = await self.session.execute(query)
         return result.scalars().first()

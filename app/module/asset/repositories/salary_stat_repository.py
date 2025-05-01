@@ -1,43 +1,29 @@
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.module.asset.model import SalaryStat
+from app.module.asset.repositories.abstract_repository import BaseRepository
 
 
-class SalaryStatRepository:
-    @classmethod
-    async def save(cls, session: AsyncSession, salary_stat: SalaryStat):
-        try:
-            session.add(salary_stat)
-            await session.commit()
-            await session.refresh(salary_stat)
-            return salary_stat
-        except IntegrityError:
-            await session.rollback()
-            return None
+class SalaryStatRepository(BaseRepository):
+    async def save(self, instance: SalaryStat):
+        self.session.add(instance)
+        return await self.commit_and_refresh(instance)
 
-    @classmethod
-    async def get(cls, session: AsyncSession, job_id: int, experience: int) -> SalaryStat | None:
-        query = select(SalaryStat).where(SalaryStat.job_id == job_id, SalaryStat.experience == experience)
-        result = await session.execute(query)
-        return result.scalars().first()
+    async def get(self, stat_id: int) -> SalaryStat | None:
+        return await self._get_by_id(SalaryStat, stat_id)
 
-    @classmethod
-    async def upsert_by_age_group(cls, session: AsyncSession, salary_stat: SalaryStat) -> SalaryStat | None:
+    async def upsert_by_age_group(self, salary_stat: SalaryStat) -> SalaryStat | None:
         stmt = select(SalaryStat).where(
             SalaryStat.job_id.is_(None), SalaryStat.experience.is_(None), SalaryStat.age_group == salary_stat.age_group
         )
-        result = await session.execute(stmt)
+        result = await self.session.execute(stmt)
         existing = result.scalars().first()
 
         if existing:
             existing.lower = salary_stat.lower
             existing.avg = salary_stat.avg
             existing.upper = salary_stat.upper
-            session.add(existing)
-            await session.commit()
-            await session.refresh(existing)
-            return existing
+            return await self.commit_and_refresh(existing)
         else:
-            return await cls.save(session, salary_stat)
+            self.session.add(salary_stat)
+            return await self.commit_and_refresh(salary_stat)

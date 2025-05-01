@@ -1,26 +1,25 @@
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.asset.v1.dependencies.rate_limiter import salary_rate_limit_guard
-from app.api.asset.v1.schemas.salary import BaseReponse, UserSalaryPostRequest
-from app.module.asset.dependencies.asset_dependency import get_salary_service
+from app.api.asset.v1.schemas.asset_schema import BaseReponse, JobsGetResponse, UserSalaryPostRequest
 from app.module.asset.services.asset_service import AssetService
-from database.dependency import get_mysql_session_router
 
 asset_router = APIRouter(prefix="/v1")
 
 
-@asset_router.get(
-    "/jobs",
-    summary="직무 데이터 반환",
-)
+@asset_router.get("/jobs", summary="직무 데이터 반환", response_model=list[JobsGetResponse])
 async def get_jobs(
-    session: AsyncSession = Depends(get_mysql_session_router),
-    asset_service: AssetService = Depends(get_salary_service),
-):
-    # TODO: 직무 데이터 반환
+    asset_service: AssetService = Depends(),
+) -> list[JobsGetResponse]:
+    jobs = await asset_service.get_jobs() or []
 
-    pass
+    return [
+        JobsGetResponse(
+            job_id=job.id,
+            name=job.name,
+        )
+        for job in jobs
+    ]
 
 
 @asset_router.post(

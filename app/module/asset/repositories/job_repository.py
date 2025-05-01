@@ -9,6 +9,15 @@ class JobRepository(BaseRepository):
         self.session.add(instance)
         return await self.commit_and_refresh(instance)
 
+    async def get(self, job_id: int) -> Job | None:
+        return await self._get_by_id(Job, job_id)
+
+    async def gets(self) -> list[Job]:
+        stmt = select(Job)
+        result = await self.session.execute(stmt)
+        jobs = result.scalars().all()
+        return jobs
+
     async def find_by_group_and_name(self, group_id: int, name: str) -> Job | None:
         stmt = select(Job).where(Job.group_id == group_id, Job.name == name)
         res = await self.session.execute(stmt)

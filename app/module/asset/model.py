@@ -2,6 +2,7 @@ from sqlalchemy import BigInteger, Boolean, Column, ForeignKey, Integer, String,
 from sqlalchemy.orm import relationship
 
 from app.common.mixin.timestamp import TimestampMixin
+from app.module.auth.model import User, UserEventConsent  # noqa: F401
 from database.config import MySQLBase
 
 
