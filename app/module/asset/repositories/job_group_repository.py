@@ -1,7 +1,7 @@
 from sqlalchemy.future import select
 
+from app.common.repository.abstract_repository import BaseRepository
 from app.module.asset.model import JobGroup
-from app.module.asset.repositories.abstract_repository import BaseRepository
 
 
 class JobGroupRepository(BaseRepository):

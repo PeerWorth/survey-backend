@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, status
 
-from app.api.asset.v1.dependencies.rate_limiter import salary_rate_limit_guard
-from app.api.asset.v1.schemas.asset_schema import BaseReponse, JobsGetResponse, UserSalaryPostRequest
+from app.api.asset.v1.dependencies.rate_limiter import salary_rate_limit_guard  # noqa: F401
+from app.api.asset.v1.schemas.asset_schema import JobsGetResponse, UserProfilePostRequest, UserSalaryPostRequest
+from app.common.schemas.base_schema import BaseReponse
 from app.module.asset.services.asset_service import AssetService
 
 asset_router = APIRouter(prefix="/v1")
@@ -26,7 +27,7 @@ async def get_jobs(
     "/salary",
     summary="사용자 정보 입력 후 연봉 비교 결과 반환",
     response_model=BaseReponse,
-    dependencies=[Depends(salary_rate_limit_guard)],
+    # dependencies=[Depends(salary_rate_limit_guard)], # TODO: 동일 ip 인 경우 및 별도 테스트 필요
 )
 async def submit_user_salary(
     request_data: UserSalaryPostRequest,
@@ -43,9 +44,17 @@ async def submit_user_salary(
     )
 
 
-@asset_router.post(
-    "/profile",
-)
-async def submit_user_profile():
-    # TODO: 소비자 성향 데이터 입력
-    pass
+@asset_router.post("/profile", summary="사용자 소비 패턴 입력 후 소비 등급 반환")
+async def submit_user_profile(
+    request_data: UserProfilePostRequest,
+    asset_service: AssetService = Depends(),
+):
+    saved = await asset_service.save_user_profile(request_data)
+
+    # TODO: 소비 패턴 별 등급 기획 마무리 시 적용 예정
+
+    return (
+        BaseReponse(status_code=status.HTTP_201_CREATED, detail="성공적으로 저장하였습니다.")
+        if saved
+        else BaseReponse(status_code=status.HTTP_400_BAD_REQUEST, detail="저장에 실패하였습니다.")
+    )

@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
+from fastapi import Depends
 from redis.asyncio import Redis
+
+from database.dependency import get_redis_pool
 
 
 class AbstractRedisRepository(ABC):
@@ -9,8 +12,8 @@ class AbstractRedisRepository(ABC):
     Redis 필수 매소드 추상화
     """
 
-    def __init__(self, redis_client: Redis) -> None:
-        self._redis = redis_client
+    def __init__(self, redis: Redis = Depends(get_redis_pool)) -> None:
+        self.redis = redis
 
     @abstractmethod
     async def get(self, key: str) -> Any | None:

@@ -10,9 +10,7 @@ class User(TimestampMixin, MySQLBase):
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     email = Column(String(255), nullable=False, unique=True)
 
-    consent = relationship(
-        "UserEventConsent", back_populates="user", cascade="all, delete-orphan", passive_deletes=True
-    )
+    consent = relationship("UserConsent", back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
     salary = relationship(
         "UserSalary",
         back_populates="user",
@@ -21,7 +19,7 @@ class User(TimestampMixin, MySQLBase):
     )
 
 
-class UserEventConsent(TimestampMixin, MySQLBase):
+class UserConsent(TimestampMixin, MySQLBase):
     __tablename__ = "user_consent"
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)

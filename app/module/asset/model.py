@@ -1,8 +1,11 @@
+import uuid
+
 from sqlalchemy import BigInteger, Boolean, Column, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy.dialects.mysql import BINARY
 from sqlalchemy.orm import relationship
 
 from app.common.mixin.timestamp import TimestampMixin
-from app.module.auth.model import User, UserEventConsent  # noqa: F401
+from app.module.auth.model import User, UserConsent  # noqa: F401
 from database.config import MySQLBase
 
 
@@ -48,7 +51,13 @@ class SalaryStat(TimestampMixin, MySQLBase):
 class UserSalary(TimestampMixin, MySQLBase):
     __tablename__ = "user_salary"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(
+        BINARY(16),
+        primary_key=True,
+        default=lambda: uuid.uuid4().bytes,
+        unique=True,
+        nullable=False,
+    )
     user_id = Column(
         BigInteger,
         ForeignKey("user.id", ondelete="CASCADE"),
@@ -67,10 +76,10 @@ class UserProfile(TimestampMixin, MySQLBase):
     __tablename__ = "user_profile"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    salary_id = Column(Integer, ForeignKey("user_salary.id", ondelete="CASCADE"), nullable=False, unique=True)
+    salary_id = Column(BINARY(16), ForeignKey("user_salary.id", ondelete="CASCADE"), nullable=False, unique=True)
     age = Column(Integer, nullable=True, comment="나이")
-    gender = Column(Boolean, nullable=True, comment="성별")
+    gender = Column(String(10), nullable=True, comment="성별")
     save_rate = Column(Integer, nullable=True, comment="저축률")
-    has_car = Column(Boolean, nullable=True, comment="자동차 보유 여부")
+    has_car = Column(Boolean, nullable=True, comment="자동차 보유")
 
     salary = relationship("UserSalary", back_populates="profile")

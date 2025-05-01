@@ -1,5 +1,5 @@
 from enum import StrEnum
 
 
-class ProviderEnum(StrEnum):
+class UserConsentEventEnum(StrEnum):
     MARKETING = "marketing"
