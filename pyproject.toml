@@ -54,6 +54,7 @@ tzdata = "^2025.2"
 pandas = "^2.2.3"
 typing-extensions = "^4.13.2"
 icecream = "^2.1.4"
+pydantic-settings = "^2.9.1"
 
 
 [build-system]

@@ -3,14 +3,15 @@ from redis.asyncio import Redis
 
 from app.api.asset.v1.constant import REDIS_KEY_RATE_LIMIT_SALARY_SUBMIT
 from app.module.asset.redis_repository import SalarySubmissionRedisRepository
+from config import settings
 
 
 class SalarySubmissionRateLimiter:
     def __init__(
         self,
         redis_repo: Redis = Depends(SalarySubmissionRedisRepository),
-        max_calls: int = 1,
-        period: int = 60,
+        max_calls: int = settings.rate_limit_max_calls,
+        period: int = settings.rate_limit_period,
     ):
         self.redis_repo = redis_repo
         self.max_calls = max_calls

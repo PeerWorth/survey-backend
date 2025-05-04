@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, status
 
-from app.api.asset.v1.dependencies.rate_limiter import salary_rate_limit_guard  # noqa: F401
+from app.api.asset.v1.dependencies.rate_limiter import salary_rate_limit_guard
 from app.api.asset.v1.schemas.asset_schema import JobsGetResponse, UserProfilePostRequest, UserSalaryPostRequest
 from app.common.schemas.base_schema import BaseReponse
 from app.module.asset.services.asset_service import AssetService
@@ -27,7 +27,7 @@ async def get_jobs(
     "/salary",
     summary="사용자 정보 입력 후 연봉 비교 결과 반환",
     response_model=BaseReponse,
-    # dependencies=[Depends(salary_rate_limit_guard)], # TODO: 동일 ip 인 경우 및 별도 테스트 필요
+    dependencies=[Depends(salary_rate_limit_guard)],
 )
 async def submit_user_salary(
     request_data: UserSalaryPostRequest,
@@ -51,7 +51,7 @@ async def submit_user_profile(
 ):
     saved = await asset_service.save_user_profile(request_data)
 
-    # TODO: 소비 패턴 별 등급 기획 마무리 시 적용 예정
+    # TODO: 소비 패턴 별 등급 기획 마무리 시 변경 예정
 
     return (
         BaseReponse(status_code=status.HTTP_201_CREATED, detail="성공적으로 저장하였습니다.")

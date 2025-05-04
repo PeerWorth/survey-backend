@@ -23,8 +23,6 @@ else:
 
 config = context.config
 
-print(ALEMBIC_MYSQL_URL)
-
 config.set_main_option("sqlalchemy.url", ALEMBIC_MYSQL_URL)
 fileConfig(config.config_file_name)
 target_metadata = MySQLBase.metadata
