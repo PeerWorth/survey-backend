@@ -10,12 +10,21 @@ class UserSalaryPostRequest(BaseModel):
     salary: int = Field(..., gt=0, le=1_000_000_000, description="연봉")
 
 
+class UserSalaryInfo(BaseModel):
+    experience: int = Field(..., description="경력")
+    salary: int = Field(..., description="연봉")
+
+
+class SalaryInfo(BaseModel):
+    experience: int = Field(..., description="경력")
+    lower: int = Field(..., description="하위 25")
+    avg: int = Field(..., description="평균")
+    upper: int = Field(..., description="상위 25")
+
+
 class UserSalaryPostResponse(BaseModel):
-    job_id: int = Field(..., description="직무 ID")
-    experience: int = Field(int, description="경력")
-    lower: int = Field(..., description="하위 연봉")
-    avg: int = Field(..., description="평균 연봉")
-    upper: int = Field(..., description="상위 연봉")
+    user: UserSalaryInfo
+    stat: SalaryInfo
 
     class Config:
         orm_mode = True
@@ -35,3 +44,7 @@ class UserProfilePostRequest(BaseModel):
 
     class Config:
         use_enum_values = True
+
+
+class UserCarRankResponse(BaseModel):
+    car: str = Field(..., description="자동차 등급")

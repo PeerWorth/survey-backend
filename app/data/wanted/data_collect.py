@@ -111,6 +111,8 @@ async def main():
 
             for tooltip_data in tooltip_data_list:
                 tooltip_data: TooltipData
+
+                avg = int(tooltip_data.salary) * 10_000_000
                 lower = int(tooltip_data.salary * 0.7)
                 upper = int(tooltip_data.salary * 1.3)
 
@@ -120,7 +122,7 @@ async def main():
                     salary_stat = SalaryStat(
                         job_id=job.id,
                         experience=tooltip_data.experience,
-                        avg=tooltip_data.salary,
+                        avg=avg,
                         lower=lower,
                         upper=upper,
                     )

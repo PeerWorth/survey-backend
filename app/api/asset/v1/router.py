@@ -3,7 +3,10 @@ from fastapi import APIRouter, Depends, status
 from app.api.asset.v1.dependencies.rate_limiter import salary_rate_limit_guard
 from app.api.asset.v1.schemas.asset_schema import (
     JobsGetResponse,
+    SalaryInfo,
+    UserCarRankResponse,
     UserProfilePostRequest,
+    UserSalaryInfo,
     UserSalaryPostRequest,
     UserSalaryPostResponse,
 )
@@ -32,46 +35,40 @@ async def get_jobs(
 @asset_router.post(
     "/salary",
     summary="사용자 정보 입력 후 연봉 비교 결과 반환",
-    response_model=list[UserSalaryPostResponse] | BaseReponse,
+    response_model=UserSalaryPostResponse | BaseReponse,
     dependencies=[Depends(salary_rate_limit_guard)],
 )
 async def submit_user_salary(
     request_data: UserSalaryPostRequest,
     asset_service: AssetService = Depends(),
-) -> list[UserSalaryPostResponse] | BaseReponse:
+) -> UserSalaryPostResponse | BaseReponse:
     await asset_service.save_user_salary(request_data)
 
     # TODO: 차트 데이터 응답, 기획 미완성으로 대기중
-    job_stats: list[SalaryStat] = await asset_service.get_job_salary(request_data.job_id)
+    job_stat: SalaryStat | None = await asset_service.get_job_salary(request_data.job_id, request_data.experience)
 
-    if not job_stats:
+    if not job_stat:
         return BaseReponse(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="저장 후, job_id와 매칭되는 데이터가 없습니다."
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="저장 후, job_id + experience 와 매칭되는 데이터가 없습니다.",
         )
 
-    return [
-        UserSalaryPostResponse(
-            job_id=stat.job_id,
-            experience=stat.experience,
-            lower=stat.lower,
-            avg=stat.avg,
-            upper=stat.upper,
-        )
-        for stat in job_stats
-    ]
+    return UserSalaryPostResponse(
+        user=UserSalaryInfo(experience=request_data.experience, salary=request_data.salary),
+        stat=SalaryInfo(
+            experience=request_data.experience, lower=job_stat.lower, avg=job_stat.avg, upper=job_stat.upper
+        ),
+    )
 
 
-@asset_router.post("/profile", summary="사용자 소비 패턴 입력 후 소비 등급 반환")
+@asset_router.post("/profile", response_model=UserCarRankResponse, summary="사용자 소비 패턴 입력 후 소비 등급 반환")
 async def submit_user_profile(
     request_data: UserProfilePostRequest,
     asset_service: AssetService = Depends(),
 ) -> BaseReponse:
-    saved = await asset_service.save_user_profile(request_data)
+    await asset_service.save_user_profile(request_data)
 
     # TODO: 소비 패턴 별 등급 기획 마무리 시 변경 예정
+    car_rank: str = asset_service.get_user_rank()
 
-    return (
-        BaseReponse(status_code=status.HTTP_201_CREATED, detail="성공적으로 저장하였습니다.")
-        if saved
-        else BaseReponse(status_code=status.HTTP_400_BAD_REQUEST, detail="저장에 실패하였습니다.")
-    )
+    return UserCarRankResponse(car=car_rank)

@@ -3,6 +3,7 @@ import uuid
 from fastapi import Depends
 
 from app.api.asset.v1.schemas.asset_schema import UserProfilePostRequest, UserSalaryPostRequest
+from app.module.asset.enums import CarRank
 from app.module.asset.model import Job, SalaryStat, UserProfile, UserSalary
 from app.module.asset.repositories.job_repository import JobRepository
 from app.module.asset.repositories.salary_stat_repository import SalaryStatRepository
@@ -47,5 +48,10 @@ class AssetService:
         saved = await self.user_profile_repo.save(user_profile)
         return bool(saved)
 
-    async def get_job_salary(self, job_id: int) -> list[SalaryStat]:
-        return await self.salary_stat_repo.get_by_job_id(job_id)
+    async def get_job_salary(self, job_id: int, experience: int) -> SalaryStat | None:
+        return await self.salary_stat_repo.get_by_job_id_experience(job_id, experience)
+
+    # TODO: 차 등급 기획이 완료되면 작업하겠습니다.
+    def get_user_rank(self):
+
+        return CarRank.BENZ

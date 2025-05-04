@@ -17,3 +17,11 @@ class AgeGroup(IntEnum):
 class Gender(StrEnum):
     MALE = "male"
     FEMALE = "female"
+
+
+class CarRank(StrEnum):
+    PUBLIC_TRANSPORT = "public_transportation"
+    MORNING = "morning"
+    GRANDEUR = "grandeur"
+    BENZ = "benz"
+    PORSCHE = "porsche"

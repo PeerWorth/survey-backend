@@ -12,10 +12,10 @@ class SalaryStatRepository(BaseRepository):
     async def get(self, stat_id: int) -> SalaryStat | None:
         return await self._get_by_id(SalaryStat, stat_id)
 
-    async def get_by_job_id(self, job_id: int) -> list[SalaryStat]:
-        stmt = select(SalaryStat).where(SalaryStat.job_id == job_id)
+    async def get_by_job_id_experience(self, job_id: int, experience: int) -> SalaryStat | None:
+        stmt = select(SalaryStat).where(SalaryStat.job_id == job_id, SalaryStat.experience == experience)
         result = await self.session.execute(stmt)
-        return result.scalars().all()
+        return result.scalars().first()
 
     async def upsert_by_age_group(self, salary_stat: SalaryStat) -> SalaryStat | None:
         stmt = select(SalaryStat).where(
