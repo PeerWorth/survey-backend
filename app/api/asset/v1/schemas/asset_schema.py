@@ -10,6 +10,17 @@ class UserSalaryPostRequest(BaseModel):
     salary: int = Field(..., gt=0, le=1_000_000_000, description="연봉")
 
 
+class UserSalaryPostResponse(BaseModel):
+    job_id: int = Field(..., description="직무 ID")
+    experience: int = Field(int, description="경력")
+    lower: int = Field(..., description="하위 연봉")
+    avg: int = Field(..., description="평균 연봉")
+    upper: int = Field(..., description="상위 연봉")
+
+    class Config:
+        orm_mode = True
+
+
 class JobsGetResponse(BaseModel):
     job_id: int = Field(..., description="직무 id, 추후 POST 요청 시 선택한 직무 id 반환")
     name: str = Field(..., description="직무명")

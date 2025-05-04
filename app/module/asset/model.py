@@ -33,13 +33,11 @@ class Job(TimestampMixin, MySQLBase):
 
 class SalaryStat(TimestampMixin, MySQLBase):
     __tablename__ = "salary_stat"
-    __table_args__ = (UniqueConstraint("job_id", "experience", "age_group", name="uniq_stat_combo"),)
+    __table_args__ = (UniqueConstraint("job_id", "experience", name="uniq_stat_combo"),)
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     job_id = Column(Integer, ForeignKey("job.id"), nullable=True, index=True)
     experience = Column(Integer, nullable=True, comment="경력")
-
-    age_group = Column(Integer, nullable=True, comment="나이대")
 
     lower = Column(Integer, nullable=False)
     avg = Column(Integer, nullable=False)
