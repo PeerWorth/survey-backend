@@ -21,9 +21,10 @@ class SalarySubmissionRateLimiter:
     async def enforce_rate_limit(
         self,
         request: Request,
-        x_forwarded_for: str | None = Header(None, convert_underscores=False),
+        x_forwarded_for: str | None = Header(None, alias="X-Forwarded-For"),
+        x_real_ip: str | None = Header(None, alias="X-Real-IP"),
     ) -> None:
-        client_ip = self._parse_client_ip(request, x_forwarded_for)
+        client_ip = self._parse_client_ip(request, x_forwarded_for, x_real_ip)
 
         if not client_ip:
             asset_logger.error(
@@ -48,19 +49,19 @@ class SalarySubmissionRateLimiter:
             )
             raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="잠시 후 다시 시도해 주세요.")
 
-    def _parse_client_ip(
-        self,
-        request: Request,
-        x_forwarded_for: str | None,
-    ) -> str | None:
+    def _parse_client_ip(self, request: Request, x_forwarded_for: str | None, x_real_ip: str | None) -> str | None:
         if x_forwarded_for:
             return x_forwarded_for.split(",")[0].strip()
-        return request.client.host
+        elif x_real_ip:
+            return x_real_ip
+        else:
+            return request.client.host
 
 
 async def salary_rate_limit_guard(
     request: Request,
-    limiter: SalarySubmissionRateLimiter = Depends(SalarySubmissionRateLimiter),
-    x_forwarded_for: str | None = Header(None, convert_underscores=False),
+    limiter: SalarySubmissionRateLimiter = Depends(),
+    x_forwarded_for: str | None = Header(None, alias="X-Forwarded-For"),
+    x_real_ip: str | None = Header(None, alias="X-Real-IP"),
 ) -> None:
-    await limiter.enforce_rate_limit(request, x_forwarded_for)
+    await limiter.enforce_rate_limit(request, x_forwarded_for, x_real_ip)

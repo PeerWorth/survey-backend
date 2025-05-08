@@ -34,7 +34,7 @@ def create_logger(
                 log_group=cloudwatch_group,
                 create_log_group=True,
                 stream_name="{strftime:%Y-%m-%d}/{process_id}",
-                send_interval=5,
+                send_interval=30,
             )
             cw.setLevel(level)
             logger.addHandler(cw)
