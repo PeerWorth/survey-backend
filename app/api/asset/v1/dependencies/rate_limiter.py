@@ -3,7 +3,7 @@ from redis.asyncio import Redis
 
 from app.api.asset.v1.constant import REDIS_KEY_RATE_LIMIT_SALARY_SUBMIT
 from app.module.asset.redis_repository import SalarySubmissionRedisRepository
-from config import settings
+from main_config import settings
 
 
 class SalarySubmissionRateLimiter:

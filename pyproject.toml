@@ -55,6 +55,8 @@ pandas = "^2.2.3"
 typing-extensions = "^4.13.2"
 icecream = "^2.1.4"
 pydantic-settings = "^2.9.1"
+boto3 = "^1.38.11"
+watchtower = "^3.4.0"
 
 
 [build-system]

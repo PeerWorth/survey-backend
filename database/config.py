@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
+from app.common.enums import EnvironmentType
 from database.constant import (
     CONNECTION_TIMEOUT_SECOND,
     DEV_COLLECT_MAX_OVERFLOW,
@@ -16,7 +17,6 @@ from database.constant import (
     PROD_MAX_OVERFLOW,
     PROD_POOL_SIZE,
 )
-from database.enum import EnvironmentType
 
 load_dotenv()
 

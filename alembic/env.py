@@ -5,9 +5,9 @@ from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
+from app.common.enums import EnvironmentType
 from app.module.asset.model import MySQLBase
 from app.module.auth.model import User, UserConsent  # noqa > create table
-from database.enum import EnvironmentType
 
 load_dotenv()
 

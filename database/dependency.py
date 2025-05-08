@@ -6,9 +6,9 @@ from dotenv import load_dotenv
 from redis.asyncio import ConnectionPool, Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.enums import EnvironmentType
 from database.config import collection_mysql_session_factory, mysql_session_factory
 from database.constant import DEV_POOL_SIZE, PROD_POOL_SIZE, REDIS_SOCKET_CONNECTION_TIMEOUT_SECOND
-from database.enum import EnvironmentType
 
 load_dotenv()
 
