@@ -25,8 +25,16 @@ def create_logger(
 
     if cloudwatch_group:
         try:
+            session = boto3.Session(region_name="ap-northeast-2")
+
+            cw_client = session.client("logs")
+
             cw = watchtower.CloudWatchLogHandler(
-                log_group=cloudwatch_group, create_log_group=True, stream_name="{strftime:%Y-%m-%d}/{process_id}"
+                boto3_client=cw_client,
+                log_group=cloudwatch_group,
+                create_log_group=True,
+                stream_name="{strftime:%Y-%m-%d}/{process_id}",
+                send_interval=5,
             )
             cw.setLevel(level)
             logger.addHandler(cw)
