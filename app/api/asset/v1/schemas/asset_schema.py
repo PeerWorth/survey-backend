@@ -1,4 +1,4 @@
-from pydantic import UUID4, BaseModel, Field
+from pydantic import UUID4, BaseModel, ConfigDict, Field
 
 from app.module.asset.enums import Gender
 
@@ -26,8 +26,7 @@ class UserSalaryPostResponse(BaseModel):
     user: UserSalaryInfo
     stat: SalaryInfo
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class JobsGetResponse(BaseModel):

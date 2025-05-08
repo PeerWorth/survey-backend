@@ -6,12 +6,13 @@ from app.common.enums import EnvironmentType
 class Settings(BaseSettings):
     environment: EnvironmentType
     rate_limit_max_calls: int = 1
-    rate_limit_period_sec_dev: int = 30
+    rate_limit_period_sec_dev: int = 10
     rate_limit_period_sec_prod: int = 60 * 60 * 24
 
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
+        from_attributes=True,
         extra="ignore",
     )
 

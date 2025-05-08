@@ -41,6 +41,7 @@ class UserService:
 
         async with self.session.begin():
             salary_record = await self.user_salary_repo.get_by_uuid(uid)
+
             if not salary_record:
                 raise SalaryRecordNotFoundError()
             if salary_record.user_id:
