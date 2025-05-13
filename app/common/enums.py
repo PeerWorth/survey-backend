@@ -1,5 +1,7 @@
 from enum import StrEnum
 
+from app.common.logger.enums import LogTag
+
 
 class EnvironmentType(StrEnum):
     LOCAL = "local"
@@ -9,4 +11,4 @@ class EnvironmentType(StrEnum):
 
     @property
     def log_level(self) -> str:
-        return "INFO" if self == EnvironmentType.PROD else "DEBUG"
+        return LogTag.INFO.value if self == EnvironmentType.PROD else LogTag.DEBUG.value

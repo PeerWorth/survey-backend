@@ -49,7 +49,7 @@ async def submit_user_salary(
     job_stat: SalaryStat | None = await asset_service.get_job_salary(request_data.job_id, request_data.experience)
 
     if not job_stat:
-        asset_logger.error("SalaryStatNotFoundError", exc_info=True)
+        asset_logger.error("[SalaryStatNotFoundError]", exc_info=True)
         return BaseReponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="저장 후, job_id + experience 와 매칭되는 데이터가 없습니다.",
