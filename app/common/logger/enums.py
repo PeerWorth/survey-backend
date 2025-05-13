@@ -10,3 +10,5 @@ class LogTag(StrEnum):
     WARN = "WARN"
     ERROR = "ERROR"
     CRITICAL = "CRITICAL"
+
+    QUERY = "QUERY"

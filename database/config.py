@@ -1,10 +1,15 @@
+import time
 from os import getenv
+from typing import Any, Mapping, Sequence
 
 from dotenv import load_dotenv
+from sqlalchemy import event
+from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 from app.common.enums import EnvironmentType
+from app.common.logger.enums import LogTag
 from database.constant import (
     CONNECTION_TIMEOUT_SECOND,
     DEV_COLLECT_MAX_OVERFLOW,
@@ -17,6 +22,7 @@ from database.constant import (
     PROD_MAX_OVERFLOW,
     PROD_POOL_SIZE,
 )
+from database.logger import db_logger
 
 load_dotenv()
 
@@ -39,7 +45,7 @@ if ENVIRONMENT == EnvironmentType.LOCAL.value or ENVIRONMENT == EnvironmentType.
         connect_args={"connect_timeout": CONNECTION_TIMEOUT_SECOND},
     )
 
-    # [INFO] api 별 쿼리 실행 계획 확인을 위한 custom 이벤트 리스너
+    # INFO: api 별 쿼리 실행 계획 확인을 위한 custom 이벤트 리스너
     # if QUERY_LOG == "True":
 
     #     @event.listens_for(mysql_engine.sync_engine, "before_cursor_execute")
@@ -82,6 +88,36 @@ elif ENVIRONMENT == EnvironmentType.PROD.value:
     )
 else:
     raise ValueError(f"{ENVIRONMENT} 환경변수 설정이 잘못되었습니다.")
+
+
+@event.listens_for(mysql_engine.sync_engine, "before_cursor_execute")
+def _before_cursor_execute(
+    conn: Connection,
+    cursor: Any,
+    statement: str,
+    parameters: Sequence[Any] | Mapping[str, Any],
+    context: Any,
+    executemany: bool,
+) -> None:
+    context._query_start_time = time.time()
+
+
+@event.listens_for(mysql_engine.sync_engine, "after_cursor_execute")
+def _after_cursor_execute(
+    conn: Connection,
+    cursor: Any,
+    statement: str,
+    parameters: Sequence[Any] | Mapping[str, Any],
+    context: Any,
+    executemany: bool,
+) -> None:
+    total_ms = (time.time() - context._query_start_time) * 1000
+    if total_ms > 200:
+        db_logger.warning(
+            f"[SLOWQUERY] total_ms: {total_ms}ms: {statement=}",
+        )
+    else:
+        db_logger.debug(f"total_ms: {total_ms}ms: {statement=}", extra={"tag": LogTag.QUERY.value})
 
 
 mysql_session_factory = sessionmaker(bind=mysql_engine, class_=AsyncSession, expire_on_commit=False)
