@@ -7,10 +7,10 @@ from app.api.auth.v1.schemas.user_schema import UserEmailRequest
 from app.module.asset.repositories.user_salary_repository import UserSalaryRepository
 from app.module.auth.enums import UserConsentEventEnum
 from app.module.auth.errors.user_error import (
-    ConsentCreationFailedError,
-    SalaryAlreadyLinkedError,
-    SalaryRecordNotFoundError,
-    UserCreationFailedError,
+    ConsentCreationFailed,
+    SalaryAlreadyLinked,
+    SalaryNotFound,
+    UserCreationFailed,
 )
 from app.module.auth.model import User, UserConsent
 from app.module.auth.repositories.user_consent_repository import UserConsentRepository
@@ -43,21 +43,21 @@ class UserService:
             salary_record = await self.user_salary_repo.get_by_uuid(uid)
 
             if not salary_record:
-                raise SalaryRecordNotFoundError()
+                raise SalaryNotFound()
             if salary_record.user_id:
-                raise SalaryAlreadyLinkedError()
+                raise SalaryAlreadyLinked()
 
             user = User(email=email)
             self.session.add(user)
             await self.session.flush()
             if not user.id:
-                raise UserCreationFailedError()
+                raise UserCreationFailed()
 
             consent = UserConsent(user_id=user.id, event=UserConsentEventEnum.MARKETING, agree=agree)
             self.session.add(consent)
             await self.session.flush()
             if not consent.id:
-                raise ConsentCreationFailedError()
+                raise ConsentCreationFailed()
 
             salary_record.user_id = user.id
             self.session.add(salary_record)

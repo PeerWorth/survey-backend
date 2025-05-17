@@ -1,11 +1,28 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 
 from app.api.asset.v1.router import asset_router
 from app.api.auth.v1.router import auth_router
-from app.common.middleware.logger import LoggingMiddleware
+from app.common.middleware.logger import LoggingMiddleware, middleware_logger
+from app.module.auth.errors.user_error import AuthException
+from app.module.auth.logger import auth_logger
 
 app = FastAPI()
+
+
+@app.exception_handler(AuthException)
+async def auth_exception_handler(request: Request, exc: AuthException):
+    auth_logger.error(f"{exc.__class__.__name__}: {exc.detail}", exc_info=exc)
+    return JSONResponse(status_code=exc.status_code, content=exc.detail)
+
+
+@app.exception_handler(ValidationError)
+async def validation_exception_handler(request: Request, exc: ValidationError):
+    middleware_logger.error(f"ValidationError: {exc.errors()}")
+    return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=exc.errors())
+
 
 app.add_middleware(LoggingMiddleware)
 

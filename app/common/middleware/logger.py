@@ -31,11 +31,11 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             middleware_logger.error(f"id={request_id} path={request.url.path}", exc_info=e)
             raise
 
-        latency = int((time.time() - start) * 1000)
+        latency = int((time.time() - start) * 1000)  # ms 계산을 위해 1000 곱함
 
         if latency > SLOW_LATENCY_MS:
             middleware_logger.warning(
-                f"[SLOWREQUEST] latency_ms={latency} method={request.method} path={request.url.path}"
+                f"SLOWREQUEST: latency_ms={latency} method={request.method} path={request.url.path}"
             )
 
         middleware_logger.info(
