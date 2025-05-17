@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends
 
 from app.api.asset.v1.dependencies.rate_limiter import salary_rate_limit_guard
 from app.api.asset.v1.schemas.asset_schema import (
@@ -11,7 +11,7 @@ from app.api.asset.v1.schemas.asset_schema import (
     UserSalaryPostResponse,
 )
 from app.common.schemas.base_schema import BaseReponse
-from app.module.asset.logger import asset_logger
+from app.module.asset.errors.asset_error import SalaryStatNotFound
 from app.module.asset.model import SalaryStat
 from app.module.asset.services.asset_service import AssetService
 
@@ -49,11 +49,7 @@ async def submit_user_salary(
     job_stat: SalaryStat | None = await asset_service.get_job_salary(request_data.job_id, request_data.experience)
 
     if not job_stat:
-        asset_logger.error("[SalaryStatNotFoundError]", exc_info=True)
-        return BaseReponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="저장 후, job_id + experience 와 매칭되는 데이터가 없습니다.",
-        )
+        raise SalaryStatNotFound
 
     return UserSalaryPostResponse(
         user=UserSalaryInfo(experience=request_data.experience, salary=request_data.salary),
