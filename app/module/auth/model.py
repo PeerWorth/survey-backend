@@ -1,43 +1,43 @@
 from __future__ import annotations
 
-from sqlalchemy import BigInteger, Boolean, ForeignKey, String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import TYPE_CHECKING
+
+from sqlmodel import Field, Relationship
 
 from app.common.mixin.timestamp import TimestampMixin
-from app.module.asset.model import UserSalary
-from database.config import MySQLBase
+
+if TYPE_CHECKING:
+    from app.module.asset.model import UserSalary
 
 
-class User(TimestampMixin, MySQLBase):
-    __tablename__ = "user"
+class User(TimestampMixin, table=True):
+    __tablename__: str = "user"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    id: int | None = Field(default=None, primary_key=True)
+    email: str = Field(nullable=False, unique=True)
 
-    consent: Mapped[list[UserConsent]] = relationship(
-        "UserConsent",
+    consent: list[UserConsent] = Relationship(
         back_populates="user",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
+        sa_relationship_kwargs={
+            "cascade": "all, delete-orphan",
+            "passive_deletes": True,
+        },
     )
-    salary: Mapped[list[UserSalary]] = relationship(
-        "UserSalary",
+    salary: list[UserSalary] = Relationship(
         back_populates="user",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
+        sa_relationship_kwargs={
+            "cascade": "all, delete-orphan",
+            "passive_deletes": True,
+        },
     )
 
 
-class UserConsent(TimestampMixin, MySQLBase):
-    __tablename__ = "user_consent"
+class UserConsent(TimestampMixin, table=True):
+    __tablename__: str = "user_consent"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(
-        BigInteger,
-        ForeignKey("user.id", ondelete="CASCADE"),
-        nullable=False,
-    )
-    event: Mapped[str] = mapped_column(String(255), nullable=False)
-    agree: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    id: int | None = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id", nullable=False)
+    event: str = Field(description="동의사항")
+    agree: bool = Field(description="동의여부")
 
-    user: Mapped[User] = relationship("User", back_populates="consent")
+    user: User = Relationship(back_populates="consent")

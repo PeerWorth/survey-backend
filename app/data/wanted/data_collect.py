@@ -12,11 +12,14 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 from app.data.wanted.source.constant import JOB_KEYS
 from app.data.wanted.source.dto import JobData, TooltipData
-from app.module.asset.model import Job, JobGroup, SalaryStat
-from app.module.asset.repositories.job_group_repository import JobGroupRepository
-from app.module.asset.repositories.job_repository import JobRepository
-from app.module.asset.repositories.salary_stat_repository import SalaryStatRepository
-from database.dependency import get_mysql_session
+
+# from app.module.asset.repositories.job_repository import JobRepository
+# from app.module.asset.repositories.salary_stat_repository import SalaryStatRepository
+# from database.dependency import get_mysql_session
+
+# from app.module.asset.model import Job, JobGroup, SalaryStat
+# from app.module.asset.repositories.job_group_repository import JobGroupRepository
+
 
 # [참조 링크] https://www.wanted.co.kr/salary/숫자
 
@@ -69,66 +72,71 @@ async def get_wanted_job_num_preset(number: int, driver: webdriver.Chrome) -> Jo
 
 
 async def main():
-    async with get_mysql_session() as session:
-        chrome_options = Options()
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--window-size=1200,800")
-        chrome_options.add_argument("--enable-automation")
+    # async with get_mysql_session() as session:
+    # TODO: JobGroupRepository,JobRepository,SalaryStatRepository 를 Depends하여 session을 할당해 인스턴스로 사용하려합니다.
+    # job_group_repo = JobGroupRepository(session)
+    # job_repo = JobRepository(session)
+    # salary_stat_repo = SalaryStatRepository(session)
 
-        chrome_options.add_argument(
-            "user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/89.0.4389.90 Safari/537.36"
-        )
-        chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-        chrome_options.add_experimental_option("useAutomationExtension", False)
-        chrome_options.add_argument("--headless")
+    chrome_options = Options()
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--window-size=1200,800")
+    chrome_options.add_argument("--enable-automation")
 
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+    chrome_options.add_argument(
+        "user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/89.0.4389.90 Safari/537.36"
+    )
+    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    chrome_options.add_experimental_option("useAutomationExtension", False)
+    chrome_options.add_argument("--headless")
 
-        for job_num in JOB_KEYS:
-            preset_data: JobData | None = await get_wanted_job_num_preset(job_num, driver)
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
-            if not preset_data:
-                print(job_num)
-                continue
+    for job_num in JOB_KEYS:
+        preset_data: JobData | None = await get_wanted_job_num_preset(job_num, driver)
 
-            job_group_name = preset_data.job_group
-            job_name = preset_data.job
-            tooltip_data_list: dict = preset_data.tooltip_data
+        if not preset_data:
+            print(job_num)
+            continue
 
-            job_group: JobGroup = await JobGroupRepository.get(session, job_group_name)
+        # job_group_name = preset_data.job_group
+        # job_name = preset_data.job
+        # tooltip_data_list: list[TooltipData] = preset_data.tooltip_data
 
-            if not job_group:
-                job_group: JobGroup = JobGroup(name=job_group_name)
-                await JobGroupRepository.save(session, job_group)
+        # job_group: JobGroup = await job_group_repo.get_by_name(job_group_name)
 
-            job = await JobRepository.get(session, job_group.id, job_name)
-            if not job:
-                job = Job(group_id=job_group.id, name=job_name)
-                job = await JobRepository.save(session, job)
+        # if not job_group:
+        #     job_group: JobGroup = JobGroup(name=job_group_name)
+        #     await job_group_repo.save(job_group)
 
-            for tooltip_data in tooltip_data_list:
-                tooltip_data: TooltipData
+        # job = await JobRepository.get(session, job_group.id, job_name)
+        # if not job:
+        #     job = Job(group_id=job_group.id, name=job_name)
+        #     job = await JobRepository.save(session, job)
 
-                avg = int(tooltip_data.salary) * 10_000_000
-                lower = int(tooltip_data.salary * 0.7)
-                upper = int(tooltip_data.salary * 1.3)
+        # for tooltip_data in tooltip_data_list:
+        #     tooltip_data: TooltipData
 
-                salary_stat = await SalaryStatRepository.get(session, job.id, tooltip_data.experience)
+        #     avg = int(tooltip_data.salary) * 10_000_000
+        #     lower = int(tooltip_data.salary * 0.7)
+        #     upper = int(tooltip_data.salary * 1.3)
 
-                if not salary_stat:
-                    salary_stat = SalaryStat(
-                        job_id=job.id,
-                        experience=tooltip_data.experience,
-                        avg=avg,
-                        lower=lower,
-                        upper=upper,
-                    )
-                    await SalaryStatRepository.save(session, salary_stat)
+        #     salary_stat = await SalaryStatRepository.get(session, job.id, tooltip_data.experience)
 
-        driver.quit()
+        #     if not salary_stat:
+        #         salary_stat = SalaryStat(
+        #             job_id=job.id,
+        #             experience=tooltip_data.experience,
+        #             avg=avg,
+        #             lower=lower,
+        #             upper=upper,
+        #         )
+        #         await SalaryStatRepository.save(session, salary_stat)
+
+    driver.quit()
 
 
 if __name__ == "__main__":

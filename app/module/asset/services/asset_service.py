@@ -26,7 +26,7 @@ class AssetService:
         self.job_repo = job_repo
 
     async def get_jobs(self, keyword: str | None) -> list[Job] | None:
-        return await self.job_repo.find_keyword(keyword) if keyword else await self.job_repo.gets()
+        return await self.job_repo.gets()
 
     async def save_user_salary(self, user_salary_request: UserSalaryPostRequest) -> bool:
         data = user_salary_request.model_dump()

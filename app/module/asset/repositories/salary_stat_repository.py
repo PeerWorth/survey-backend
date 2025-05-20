@@ -18,16 +18,12 @@ class SalaryStatRepository(BaseRepository):
         return result.scalars().first()
 
     async def upsert_by_age_group(self, salary_stat: SalaryStat) -> SalaryStat | None:
-        stmt = select(SalaryStat).where(
-            SalaryStat.job_id.is_(None), SalaryStat.experience.is_(None), SalaryStat.age_group == salary_stat.age_group
-        )
+        stmt = select(SalaryStat).where(not SalaryStat.job_id, not SalaryStat.experience)
         result = await self.session.execute(stmt)
         existing = result.scalars().first()
 
         if existing:
-            existing.lower = salary_stat.lower
             existing.avg = salary_stat.avg
-            existing.upper = salary_stat.upper
             return await self.commit_and_refresh(existing)
         else:
             self.session.add(salary_stat)
