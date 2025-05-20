@@ -22,3 +22,9 @@ class JobRepository(BaseRepository):
         stmt = select(Job).where(Job.group_id == group_id, Job.name == name)
         res = await self.session.execute(stmt)
         return res.scalars().first()
+
+    async def find_keyword(self, keyword: str) -> list[Job]:
+        pattern = f"%{keyword}%"  # INFO: 테이블 전체 행이 400개 이하라, full table scan 허용
+        stmt = select(Job).where(Job.name.ilike(pattern))
+        result = await self.session.execute(stmt)
+        return result.scalars().all()

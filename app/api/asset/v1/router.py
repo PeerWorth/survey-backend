@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from app.api.asset.v1.dependencies.rate_limiter import salary_rate_limit_guard
 from app.api.asset.v1.schemas.asset_schema import (
@@ -12,7 +12,7 @@ from app.api.asset.v1.schemas.asset_schema import (
 )
 from app.common.schemas.base_schema import BaseReponse
 from app.module.asset.errors.asset_error import SalaryStatNotFound
-from app.module.asset.model import SalaryStat
+from app.module.asset.model import Job, SalaryStat
 from app.module.asset.services.asset_service import AssetService
 
 asset_router = APIRouter(prefix="/v1")
@@ -20,9 +20,12 @@ asset_router = APIRouter(prefix="/v1")
 
 @asset_router.get("/jobs", summary="직무 데이터 반환", response_model=list[JobsGetResponse])
 async def get_jobs(
+    keyword: str | None = Query(
+        None, title="검색 키워드", description="직무명으로 부분 검색할 키워드 (없으면 전체 반환)"
+    ),
     asset_service: AssetService = Depends(),
 ) -> list[JobsGetResponse]:
-    jobs = await asset_service.get_jobs() or []
+    jobs: list[Job] = await asset_service.get_jobs(keyword) or []
 
     return [
         JobsGetResponse(
