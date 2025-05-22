@@ -1,5 +1,4 @@
 from fastapi import Depends, Header, HTTPException, Request, status
-from redis.asyncio import Redis
 
 from app.api.asset.v1.constant import REDIS_KEY_RATE_LIMIT_SALARY_SUBMIT
 from app.module.asset.logger import asset_logger
@@ -10,7 +9,7 @@ from main_config import settings
 class SalarySubmissionRateLimiter:
     def __init__(
         self,
-        redis_repo: Redis = Depends(SalarySubmissionRedisRepository),
+        redis_repo: SalarySubmissionRedisRepository = Depends(SalarySubmissionRedisRepository),
         max_calls: int = settings.rate_limit_max_calls,
         period: int = settings.rate_limit_period,
     ):
@@ -38,7 +37,7 @@ class SalarySubmissionRateLimiter:
 
         key = f"{REDIS_KEY_RATE_LIMIT_SALARY_SUBMIT}:{client_ip}"
 
-        was_set = await self.redis_repo.set(key, 1, expire=self.period, nx=True)
+        was_set = await self.redis_repo.set(key=key, valeu=1, expire=self.period, nx=True)
 
         if not was_set:
             asset_logger.error(

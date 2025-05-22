@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 class JobGroup(TimestampMixin, table=True):
     __tablename__: str = "job_group"
 
-    id: int | None = Field(default=None, primary_key=True)
+    id: int = Field(default=None, primary_key=True)
     name: str = Field(sa_column_kwargs={"nullable": False, "unique": True})
 
     jobs: list[Job] = Relationship(back_populates="group")
@@ -25,7 +25,7 @@ class Job(TimestampMixin, table=True):
     __tablename__: str = "job"
     __table_args__ = (UniqueConstraint("group_id", "name", name="uniq_job_group_job_name"),)
 
-    id: int | None = Field(default=None, primary_key=True)
+    id: int = Field(default=None, primary_key=True)
     group_id: int = Field(foreign_key="job_group.id", nullable=False)
     name: str
     name_en: str | None = None
@@ -39,7 +39,7 @@ class SalaryStat(TimestampMixin, table=True):
     __tablename__: str = "salary_stat"
     __table_args__ = (UniqueConstraint("job_id", "experience", name="uniq_stat_combo"),)
 
-    id: int | None = Field(default=None, primary_key=True)
+    id: int = Field(default=None, primary_key=True)
     job_id: int | None = Field(foreign_key="job.id", nullable=True, index=True)
     experience: int | None = Field(default=None, description="경력")
     avg: int = Field(description="평균 연봉")
@@ -50,7 +50,7 @@ class SalaryStat(TimestampMixin, table=True):
 class UserSalary(TimestampMixin, table=True):
     __tablename__: str = "user_salary"
 
-    id: UUID | None = Field(default_factory=uuid4, primary_key=True)
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
     user_id: int | None = Field(foreign_key="user.id", nullable=True)
     job_id: int = Field(foreign_key="job.id")
     experience: int = Field(description="경력")
@@ -64,11 +64,11 @@ class UserSalary(TimestampMixin, table=True):
 class UserProfile(TimestampMixin, table=True):
     __tablename__: str = "user_profile"
 
-    id: int | None = Field(default=None, primary_key=True)
+    id: int = Field(default=None, primary_key=True)
     salary_id: UUID = Field(foreign_key="user_salary.id", nullable=False, unique=True)
     age: int | None = Field(nullable=True, description="나이")
-    gender: str | None = Field(nullable=True, description="성별")
     save_rate: int | None = Field(nullable=True, description="저축률")
     has_car: bool | None = Field(nullable=True, description="자동차 보유")
+    monthly_rent: bool | None = Field(nullable=True, description="웰세 여부")
 
     salary: UserSalary | None = Relationship(back_populates="profile")

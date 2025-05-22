@@ -1,12 +1,9 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends
 
 from app.api.asset.v1.dependencies.rate_limiter import salary_rate_limit_guard
 from app.api.asset.v1.schemas.asset_schema import (
-    JobsGetResponse,
-    SalaryInfo,
     UserCarRankResponse,
     UserProfilePostRequest,
-    UserSalaryInfo,
     UserSalaryPostRequest,
     UserSalaryPostResponse,
 )
@@ -18,22 +15,11 @@ from app.module.asset.services.asset_service import AssetService
 asset_router = APIRouter(prefix="/v1")
 
 
-@asset_router.get("/jobs", summary="직무 데이터 반환", response_model=list[JobsGetResponse])
+@asset_router.get("/jobs", summary="직무 데이터 반환", response_model=list[Job])
 async def get_jobs(
-    keyword: str | None = Query(
-        None, title="검색 키워드", description="직무명으로 부분 검색할 키워드 (없으면 전체 반환)"
-    ),
     asset_service: AssetService = Depends(),
-) -> list[JobsGetResponse]:
-    jobs: list[Job] = await asset_service.get_jobs(keyword) or []
-
-    return [
-        JobsGetResponse(
-            job_id=job.id,
-            name=job.name,
-        )
-        for job in jobs
-    ]
+) -> list[Job]:
+    return await asset_service.get_jobs() or []
 
 
 @asset_router.post(
@@ -45,20 +31,15 @@ async def get_jobs(
 async def submit_user_salary(
     request_data: UserSalaryPostRequest,
     asset_service: AssetService = Depends(),
-) -> UserSalaryPostResponse | BaseReponse:
+) -> UserSalaryPostResponse:
     await asset_service.save_user_salary(request_data)
 
-    # TODO: 차트 데이터 응답, 기획 미완성으로 대기중
     job_stat: SalaryStat | None = await asset_service.get_job_salary(request_data.job_id, request_data.experience)
-
     if not job_stat:
         raise SalaryStatNotFound
 
     return UserSalaryPostResponse(
-        user=UserSalaryInfo(experience=request_data.experience, salary=request_data.salary),
-        stat=SalaryInfo(
-            experience=request_data.experience, lower=job_stat.lower, avg=job_stat.avg, upper=job_stat.upper
-        ),
+        user_experience=request_data.experience, user_salary=request_data.salary, job_salary=job_stat.avg
     )
 
 
@@ -66,10 +47,10 @@ async def submit_user_salary(
 async def submit_user_profile(
     request_data: UserProfilePostRequest,
     asset_service: AssetService = Depends(),
-) -> BaseReponse:
+) -> UserCarRankResponse:
     await asset_service.save_user_profile(request_data)
 
-    # TODO: 소비 패턴 별 등급 기획 마무리 시 변경 예정
-    car_rank: str = asset_service.get_user_rank()
+    car: str = await asset_service.get_user_rank(request_data.unique_id, request_data.save_rate)
 
-    return UserCarRankResponse(car=car_rank)
+    # TODO: cold-start 데이터가 완료가 되면, 퍼센티지를 반환하겠습니다.
+    return UserCarRankResponse(car=car, percentage=1)
