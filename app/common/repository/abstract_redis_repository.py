@@ -22,7 +22,7 @@ class AbstractRedisRepository(ABC):
         """
 
     @abstractmethod
-    async def set(self, key: str, value: Any, expire: int) -> Any | None:
+    async def set(self, key: str, value: Any, expire: int, nx: bool | None) -> Any | None:
         """
         단일 값 추가/수정
         """

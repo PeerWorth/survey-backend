@@ -20,6 +20,7 @@ warn_unused_ignores = true
 warn_redundant_casts = true
 warn_unreachable = true
 
+
 [tool.flake8]
 max-line-length = 120
 ignore = ["E203","W501","W503"]
@@ -58,6 +59,9 @@ pydantic-settings = "^2.9.1"
 boto3 = "^1.38.11"
 watchtower = "^3.4.0"
 mypy-boto3-logs = "^1.38.6"
+sqlmodel = "^0.0.24"
+sqlalchemy2-stubs = "^0.0.2a38"
+pydantic = "^2.9.1"
 
 
 [build-system]

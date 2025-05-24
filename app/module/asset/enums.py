@@ -21,7 +21,7 @@ class Gender(StrEnum):
 
 class CarRank(StrEnum):
     PUBLIC_TRANSPORT = "public_transportation"
-    MORNING = "morning"
+    AVANTE = "avante"
     GRANDEUR = "grandeur"
     BENZ = "benz"
     PORSCHE = "porsche"

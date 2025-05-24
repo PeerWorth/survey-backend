@@ -1,83 +1,80 @@
-import uuid
+from typing import Optional
+from uuid import UUID, uuid4
 
-from sqlalchemy import BigInteger, Boolean, Column, ForeignKey, Integer, String, UniqueConstraint
-from sqlalchemy.dialects.mysql import BINARY
-from sqlalchemy.orm import relationship
+from sqlalchemy import BINARY, Column, ForeignKey, UniqueConstraint
+from sqlmodel import Field, Relationship
 
 from app.common.mixin.timestamp import TimestampMixin
-from app.module.auth.model import User, UserConsent  # noqa: F401
-from database.config import MySQLBase
 
 
-class JobGroup(TimestampMixin, MySQLBase):
-    __tablename__ = "job_group"
+class JobGroup(TimestampMixin, table=True):
+    __tablename__: str = "job_group"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(100), nullable=False, unique=True)
+    id: int = Field(default=None, primary_key=True)
+    name: str = Field(sa_column_kwargs={"nullable": False, "unique": True})
 
-    jobs = relationship("Job", back_populates="group")
+    jobs: list["Job"] = Relationship(back_populates="group")
 
 
-class Job(TimestampMixin, MySQLBase):
-    __tablename__ = "job"
+class Job(TimestampMixin, table=True):
+    __tablename__: str = "job"
     __table_args__ = (UniqueConstraint("group_id", "name", name="uniq_job_group_job_name"),)
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    group_id = Column(Integer, ForeignKey("job_group.id"), nullable=False)
-    name = Column(String(100), nullable=False)
+    id: int = Field(default=None, primary_key=True)
+    group_id: int = Field(foreign_key="job_group.id", nullable=False)
+    name: str
+    name_en: str | None = None
 
-    group = relationship("JobGroup", back_populates="jobs")
-    salary = relationship("UserSalary", back_populates="job")
-    stats = relationship("SalaryStat", back_populates="job")
+    group: JobGroup | None = Relationship(back_populates="jobs")
+    salary: list["UserSalary"] = Relationship(back_populates="job")
+    stats: list["SalaryStat"] = Relationship(back_populates="job")
 
 
-class SalaryStat(TimestampMixin, MySQLBase):
-    __tablename__ = "salary_stat"
+class SalaryStat(TimestampMixin, table=True):
+    __tablename__: str = "salary_stat"
     __table_args__ = (UniqueConstraint("job_id", "experience", name="uniq_stat_combo"),)
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    job_id = Column(Integer, ForeignKey("job.id"), nullable=True, index=True)
-    experience = Column(Integer, nullable=True, comment="경력")
+    id: int = Field(default=None, primary_key=True)
+    job_id: int | None = Field(foreign_key="job.id", nullable=True, index=True)
+    experience: int | None = Field(default=None, description="경력")
+    avg: int = Field(description="평균 연봉")
 
-    lower = Column(Integer, nullable=False)
-    avg = Column(Integer, nullable=False)
-    upper = Column(Integer, nullable=False)
-
-    job = relationship("Job", back_populates="stats")
+    job: Job | None = Relationship(back_populates="stats")
 
 
-class UserSalary(TimestampMixin, MySQLBase):
-    __tablename__ = "user_salary"
+class UserSalary(TimestampMixin, table=True):
+    __tablename__: str = "user_salary"
 
-    id = Column(
-        BINARY(16),
-        primary_key=True,
-        default=lambda: uuid.uuid4().bytes,
-        unique=True,
-        nullable=False,
+    id: UUID = Field(
+        default_factory=uuid4,
+        sa_column=Column("id", BINARY(16), primary_key=True),
     )
-    user_id = Column(
-        BigInteger,
-        ForeignKey("user.id", ondelete="CASCADE"),
-        nullable=True,
+    user_id: int | None = Field(foreign_key="user.id", nullable=True)
+    job_id: int = Field(foreign_key="job.id")
+    experience: int = Field(description="경력")
+    salary: int = Field(description="연봉")
+
+    job: Job | None = Relationship(back_populates="salary")
+    profile: Optional["UserProfile"] = Relationship(back_populates="salary")
+
+
+class UserProfile(TimestampMixin, table=True):
+    __tablename__: str = "user_profile"
+
+    id: int = Field(default=None, primary_key=True)
+    salary_id: bytes = Field(
+        sa_column=Column(
+            "salary_id",
+            BINARY(16),
+            ForeignKey("user_salary.id", ondelete="CASCADE"),
+            nullable=False,
+            unique=True,
+            comment="user_salary.id (16-byte UUID)",
+        )
     )
-    job_id = Column(Integer, ForeignKey("job.id"), nullable=False)
-    experience = Column(Integer, nullable=False, comment="경력")
-    salary = Column(Integer, nullable=False, comment="연봉")
+    age: int | None = Field(nullable=True, description="나이")
+    save_rate: int | None = Field(nullable=True, description="저축률")
+    has_car: bool | None = Field(nullable=True, description="자동차 보유")
+    monthly_rent: bool | None = Field(nullable=True, description="웰세 여부")
 
-    user = relationship("User", back_populates="salary")
-    job = relationship("Job", back_populates="salary")
-    profile = relationship("UserProfile", back_populates="salary", uselist=False)
-
-
-class UserProfile(TimestampMixin, MySQLBase):
-    __tablename__ = "user_profile"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    salary_id = Column(BINARY(16), ForeignKey("user_salary.id", ondelete="CASCADE"), nullable=False, unique=True)
-    age = Column(Integer, nullable=True, comment="나이")
-    gender = Column(String(10), nullable=True, comment="성별")
-    save_rate = Column(Integer, nullable=True, comment="저축률")
-    has_car = Column(Boolean, nullable=True, comment="자동차 보유")
-
-    salary = relationship("UserSalary", back_populates="profile")
+    salary: UserSalary | None = Relationship(back_populates="profile")
