@@ -7,6 +7,7 @@ from app.api.asset.v1.router import asset_router
 from app.api.auth.v1.router import auth_router
 from app.common.middleware.logger import LoggingMiddleware, middleware_logger
 from app.module.asset.errors.asset_error import AssetException
+from app.module.asset.logger import asset_logger
 from app.module.auth.errors.user_error import AuthException
 from app.module.auth.logger import auth_logger
 
@@ -16,7 +17,7 @@ app = FastAPI()
 # INFO: 도메인 별, 에러 핸들링 적용
 @app.exception_handler(AssetException)
 async def asset_exception_handler(request: Request, exc: AssetException):
-    auth_logger.error(f"{exc.__class__.__name__}: {exc.detail}", exc_info=exc)
+    asset_logger.error(f"{exc.__class__.__name__}: {exc.detail}", exc_info=exc)
     return JSONResponse(status_code=exc.status_code, content=exc.detail)
 
 

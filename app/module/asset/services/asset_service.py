@@ -43,6 +43,7 @@ class AssetService:
     async def save_user_profile(self, user_profile_request: UserProfilePostRequest) -> bool:
         data = user_profile_request.model_dump()
         uid: uuid.UUID = data.pop("unique_id")
+
         data["salary_id"] = uid.bytes
 
         user_profile = UserProfile(**data)

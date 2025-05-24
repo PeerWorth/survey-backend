@@ -37,7 +37,7 @@ class SalarySubmissionRateLimiter:
 
         key = f"{REDIS_KEY_RATE_LIMIT_SALARY_SUBMIT}:{client_ip}"
 
-        was_set = await self.redis_repo.set(key=key, valeu=1, expire=self.period, nx=True)
+        was_set = await self.redis_repo.set(key=key, value=1, expire=self.period, nx=True)
 
         if not was_set:
             asset_logger.error(

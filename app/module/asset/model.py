@@ -1,7 +1,7 @@
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import BINARY, Column, ForeignKey, UniqueConstraint
 from sqlmodel import Field, Relationship
 
 from app.common.mixin.timestamp import TimestampMixin
@@ -45,7 +45,10 @@ class SalaryStat(TimestampMixin, table=True):
 class UserSalary(TimestampMixin, table=True):
     __tablename__: str = "user_salary"
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    id: UUID = Field(
+        default_factory=uuid4,
+        sa_column=Column("id", BINARY(16), primary_key=True),
+    )
     user_id: int | None = Field(foreign_key="user.id", nullable=True)
     job_id: int = Field(foreign_key="job.id")
     experience: int = Field(description="경력")
@@ -59,7 +62,16 @@ class UserProfile(TimestampMixin, table=True):
     __tablename__: str = "user_profile"
 
     id: int = Field(default=None, primary_key=True)
-    salary_id: UUID = Field(foreign_key="user_salary.id", nullable=False, unique=True)
+    salary_id: bytes = Field(
+        sa_column=Column(
+            "salary_id",
+            BINARY(16),
+            ForeignKey("user_salary.id", ondelete="CASCADE"),
+            nullable=False,
+            unique=True,
+            comment="user_salary.id (16-byte UUID)",
+        )
+    )
     age: int | None = Field(nullable=True, description="나이")
     save_rate: int | None = Field(nullable=True, description="저축률")
     has_car: bool | None = Field(nullable=True, description="자동차 보유")

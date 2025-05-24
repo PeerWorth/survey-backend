@@ -1,10 +1,7 @@
-from typing import Literal
-
 from pydantic import UUID4, BaseModel, ConfigDict, Field
 
 
 class UserSalaryPostRequest(BaseModel):
-    schemaVersion: Literal["v1"] = "v1"
     unique_id: UUID4
     job_id: int
     experience: int = Field(..., ge=0, le=10)
