@@ -1,6 +1,13 @@
 from pydantic import UUID4, BaseModel, ConfigDict, Field
 
 
+class JobResponse(BaseModel):
+    id: int
+    name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class UserSalaryPostRequest(BaseModel):
     unique_id: UUID4
     job_id: int

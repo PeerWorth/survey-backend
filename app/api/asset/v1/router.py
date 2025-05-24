@@ -2,23 +2,25 @@ from fastapi import APIRouter, Depends
 
 from app.api.asset.v1.dependencies.rate_limiter import salary_rate_limit_guard
 from app.api.asset.v1.schemas.asset_schema import (
+    JobResponse,
     UserCarRankResponse,
     UserProfilePostRequest,
     UserSalaryPostRequest,
     UserSalaryPostResponse,
 )
 from app.module.asset.errors.asset_error import SalaryStatNotFound
-from app.module.asset.model import Job, SalaryStat
+from app.module.asset.model import SalaryStat
 from app.module.asset.services.asset_service import AssetService
 
 asset_router = APIRouter(prefix="/v1")
 
 
-@asset_router.get("/jobs", summary="직무 데이터 반환", response_model=list[Job])
+@asset_router.get("/jobs", summary="직무 데이터 반환", response_model=list[JobResponse])
 async def get_jobs(
     asset_service: AssetService = Depends(),
-) -> list[Job]:
-    return await asset_service.get_jobs() or []
+) -> list[JobResponse]:
+    jobs = await asset_service.get_jobs() or []
+    return [JobResponse.model_validate(job) for job in jobs]
 
 
 @asset_router.post(
