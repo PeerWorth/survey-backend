@@ -1,15 +1,10 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+from typing import Optional
 from uuid import UUID, uuid4
 
 from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, Relationship
 
 from app.common.mixin.timestamp import TimestampMixin
-
-if TYPE_CHECKING:
-    from app.module.auth.model import User
 
 
 class JobGroup(TimestampMixin, table=True):
@@ -18,7 +13,7 @@ class JobGroup(TimestampMixin, table=True):
     id: int = Field(default=None, primary_key=True)
     name: str = Field(sa_column_kwargs={"nullable": False, "unique": True})
 
-    jobs: list[Job] = Relationship(back_populates="group")
+    jobs: list["Job"] = Relationship(back_populates="group")
 
 
 class Job(TimestampMixin, table=True):
@@ -31,8 +26,8 @@ class Job(TimestampMixin, table=True):
     name_en: str | None = None
 
     group: JobGroup | None = Relationship(back_populates="jobs")
-    salary: list[UserSalary] = Relationship(back_populates="job")
-    stats: list[SalaryStat] = Relationship(back_populates="job")
+    salary: list["UserSalary"] = Relationship(back_populates="job")
+    stats: list["SalaryStat"] = Relationship(back_populates="job")
 
 
 class SalaryStat(TimestampMixin, table=True):
@@ -56,9 +51,8 @@ class UserSalary(TimestampMixin, table=True):
     experience: int = Field(description="경력")
     salary: int = Field(description="연봉")
 
-    user: User | None = Relationship(back_populates="salary")
     job: Job | None = Relationship(back_populates="salary")
-    profile: UserProfile | None = Relationship(back_populates="salary")
+    profile: Optional["UserProfile"] = Relationship(back_populates="salary")
 
 
 class UserProfile(TimestampMixin, table=True):

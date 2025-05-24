@@ -1,11 +1,14 @@
+from typing import Literal
+
 from pydantic import UUID4, BaseModel, ConfigDict, Field
 
 
 class UserSalaryPostRequest(BaseModel):
-    unique_id: UUID4 = Field(..., description="클라이언트 uuid")
-    job_id: int = Field(..., description="직무")
-    experience: int = Field(..., ge=0, le=10, description="경력")
-    salary: int = Field(..., gt=0, le=1_000_000_000, description="연봉")
+    schemaVersion: Literal["v1"] = "v1"
+    unique_id: UUID4
+    job_id: int
+    experience: int = Field(..., ge=0, le=10)
+    salary: int = Field(..., gt=0, le=1_000_000_000)
 
 
 class UserSalaryPostResponse(BaseModel):

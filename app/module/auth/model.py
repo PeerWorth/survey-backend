@@ -1,13 +1,6 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 from sqlmodel import Field, Relationship
 
 from app.common.mixin.timestamp import TimestampMixin
-
-if TYPE_CHECKING:
-    from app.module.asset.model import UserSalary
 
 
 class User(TimestampMixin, table=True):
@@ -16,14 +9,7 @@ class User(TimestampMixin, table=True):
     id: int = Field(default=None, primary_key=True)
     email: str = Field(nullable=False, unique=True)
 
-    consent: list[UserConsent] = Relationship(
-        back_populates="user",
-        sa_relationship_kwargs={
-            "cascade": "all, delete-orphan",
-            "passive_deletes": True,
-        },
-    )
-    salary: list[UserSalary] = Relationship(
+    consent: list["UserConsent"] = Relationship(
         back_populates="user",
         sa_relationship_kwargs={
             "cascade": "all, delete-orphan",
