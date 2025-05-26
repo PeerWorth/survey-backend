@@ -2,6 +2,7 @@ import uuid
 
 from fastapi import Depends
 
+from app.api.asset.v1.constant import SALARY_THOUSAND_WON
 from app.api.asset.v1.schemas.asset_schema import UserProfilePostRequest, UserSalaryPostRequest
 from app.module.asset.enums import CarRank
 from app.module.asset.errors.asset_error import NoMatchUserSalary
@@ -35,6 +36,7 @@ class AssetService:
         uid: uuid.UUID = data.pop("unique_id")
 
         data["id"] = uid.bytes
+        data["salary"] = data["salary"] * SALARY_THOUSAND_WON
         user_salary = UserSalary(**data)
 
         saved = await self.user_salary_repo.save(user_salary)

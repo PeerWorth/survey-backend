@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 
+from app.api.asset.v1.constant import SALARY_THOUSAND_WON
 from app.api.asset.v1.dependencies.rate_limiter import salary_rate_limit_guard
 from app.api.asset.v1.schemas.asset_schema import (
     JobResponse,
@@ -39,8 +40,10 @@ async def submit_user_salary(
     if not job_stat:
         raise SalaryStatNotFound
 
+    job_salary_thousand = job_stat.avg // SALARY_THOUSAND_WON  # 천만원 단위
+
     return UserSalaryPostResponse(
-        user_experience=request_data.experience, user_salary=request_data.salary, job_salary=job_stat.avg
+        user_experience=request_data.experience, user_salary=request_data.salary, job_salary=job_salary_thousand
     )
 
 

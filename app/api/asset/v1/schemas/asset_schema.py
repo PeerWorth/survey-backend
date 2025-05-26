@@ -12,7 +12,7 @@ class UserSalaryPostRequest(BaseModel):
     unique_id: UUID4
     job_id: int
     experience: int = Field(..., ge=0, le=10)
-    salary: int = Field(..., gt=0, le=1_000_000_000)
+    salary: int = Field(..., gt=0, le=100_000)
 
 
 class UserSalaryPostResponse(BaseModel):
