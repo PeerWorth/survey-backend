@@ -14,13 +14,28 @@ class UserSalaryPostRequest(BaseModel):
     experience: int = Field(..., ge=0, le=10)
     salary: int = Field(..., gt=0, le=100_000)
 
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
+            "example": {
+                "unique_id": "2323f2ac-4066-4e32-9412-0321c70dd8dc",
+                "job_id": 5,
+                "experience": 2,
+                "salary": 4500,
+            }
+        },
+    )
+
 
 class UserSalaryPostResponse(BaseModel):
     user_experience: int
     user_salary: int
     job_salary: int
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={"example": {"user_experience": 5, "user_salary": 5500, "job_salary": 6000}},
+    )
 
 
 class JobsGetResponse(BaseModel):
