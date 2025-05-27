@@ -1,0 +1,69 @@
+[tool.black]
+line-length = 120
+target-version = ['py312']
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+line_length = 120
+
+[tool.mypy]
+python_version = "3.12"
+files = ["app", "data", "dependencies", "tests"]
+ignore_missing_imports = true
+strict_optional = true
+no_implicit_optional = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unreachable = true
+
+
+[tool.flake8]
+max-line-length = 120
+ignore = ["E203","W501","W503"]
+
+[tool.poetry]
+name = "backend"
+version = "0.1.0"
+description = ""
+authors = ["kcw2297 <kcw2371@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.115.12"
+black = "^25.1.0"
+flake8 = "^7.1.2"
+isort = "^6.0.1"
+mypy = "^1.15.0"
+pytest = "^8.3.5"
+docker = "^7.1.0"
+uvicorn = "^0.34.0"
+alembic = "^1.15.2"
+xmltodict = "^0.14.2"
+selenium = "^4.31.0"
+beautifulsoup4 = "^4.13.4"
+requests = "^2.32.3"
+sqlalchemy = "^2.0.40"
+webdriver-manager = "^4.0.2"
+aiomysql = "^0.2.0"
+redis = "^5.2.1"
+tzdata = "^2025.2"
+pandas = "^2.2.3"
+typing-extensions = "^4.13.2"
+icecream = "^2.1.4"
+pydantic-settings = "^2.9.1"
+boto3 = "^1.38.11"
+watchtower = "^3.4.0"
+mypy-boto3-logs = "^1.38.6"
+sqlmodel = "^0.0.24"
+sqlalchemy2-stubs = "^0.0.2a38"
+pydantic = "^2.9.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
