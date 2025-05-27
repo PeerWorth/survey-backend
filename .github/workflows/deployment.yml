@@ -46,6 +46,20 @@ jobs:
           --version-label ${VERSION} \
           --source-bundle S3Bucket=${{ secrets.EB_BUCKET }},S3Key=app-${VERSION}.zip
 
+    - name: Wait for EB environment to be Ready
+      run: |
+        echo "⏳ Waiting for environment to become Ready..."
+        while [ "$(aws elasticbeanstalk describe-environments \
+                        --environment-names ${{ secrets.EB_ENV_NAME }} \
+                        --query "Environments[0].Status" \
+                        --output text)" != "Ready" ]; do
+          echo "   Current status: $(aws elasticbeanstalk describe-environments \
+                                  --environment-names ${{ secrets.EB_ENV_NAME }} \
+                                  --query "Environments[0].Status" \
+                                  --output text). Sleeping 15s..."
+          sleep 15
+        done
+
     - name: Deploy to Elastic Beanstalk
       run: |
         aws elasticbeanstalk update-environment \
