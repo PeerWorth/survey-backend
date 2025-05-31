@@ -65,6 +65,8 @@ sqlmodel = "^0.0.24"
 sqlalchemy2-stubs = "^0.0.2a38"
 pydantic = "^2.9.1"
 openpyxl = "^3.1.5"
+dotenv = "^0.9.9"
+python-dotenv = "^1.1.0"
 
 
 [build-system]
