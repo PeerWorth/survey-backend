@@ -23,7 +23,6 @@ class Job(TimestampMixin, table=True):
     id: int = Field(default=None, primary_key=True)
     group_id: int = Field(foreign_key="job_group.id", nullable=False)
     name: str
-    name_en: str | None = None
 
     group: JobGroup | None = Relationship(back_populates="jobs")
     salary: list["UserSalary"] = Relationship(back_populates="job")
