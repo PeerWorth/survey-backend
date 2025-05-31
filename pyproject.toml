@@ -20,7 +20,6 @@ warn_unused_ignores = true
 warn_redundant_casts = true
 warn_unreachable = true
 
-
 [tool.flake8]
 max-line-length = 120
 ignore = ["E203","W501","W503"]
@@ -31,6 +30,9 @@ version = "0.1.0"
 description = ""
 authors = ["kcw2297 <kcw2371@gmail.com>"]
 readme = "README.md"
+
+[[tool.poetry.packages]]
+include = "app"
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -62,6 +64,9 @@ mypy-boto3-logs = "^1.38.6"
 sqlmodel = "^0.0.24"
 sqlalchemy2-stubs = "^0.0.2a38"
 pydantic = "^2.9.1"
+openpyxl = "^3.1.5"
+dotenv = "^0.9.9"
+python-dotenv = "^1.1.0"
 
 
 [build-system]
