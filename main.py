@@ -1,3 +1,6 @@
+from os import getenv
+
+from dotenv import load_dotenv
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -5,13 +8,39 @@ from pydantic import ValidationError
 
 from app.api.asset.v1.router import asset_router
 from app.api.auth.v1.router import auth_router
+from app.common.enums import EnvironmentType
 from app.common.middleware.logger import LoggingMiddleware, middleware_logger
 from app.module.asset.errors.asset_error import AssetException
 from app.module.asset.logger import asset_logger
 from app.module.auth.errors.user_error import AuthException
 from app.module.auth.logger import auth_logger
 
-app = FastAPI()
+load_dotenv()
+
+ENVIRONMENT = getenv("ENVIRONMENT", None)
+
+
+if ENVIRONMENT == EnvironmentType.LOCAL.value or ENVIRONMENT == EnvironmentType.TEST.value:
+    app = FastAPI()
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+elif ENVIRONMENT == EnvironmentType.PROD.value:
+    app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["https://www.olass.co.kr"],
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "DELETE"],
+        allow_headers=["Authorization", "Content-Type"],
+    )
+
+else:
+    raise ValueError(f"ENVIRONMENT 환경 변수가 잘못되었거나 설정되지 않았습니다. 현재 값: {ENVIRONMENT}")
 
 
 # INFO: 도메인 별, 에러 핸들링 적용
@@ -34,14 +63,6 @@ async def validation_exception_handler(request: Request, exc: ValidationError):
 
 
 app.add_middleware(LoggingMiddleware)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 
 app.include_router(asset_router, prefix="/api/asset", tags=["asset"])
