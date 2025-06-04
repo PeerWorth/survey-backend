@@ -13,7 +13,6 @@ from app.module.asset.repositories.user_profile_repository import UserProfileRep
 from app.module.asset.repositories.user_salary_repository import UserSalaryRepository
 
 
-# TODO: 역할/책임 + 상태 Docstring 작성
 class AssetService:
     def __init__(
         self,
