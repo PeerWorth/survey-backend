@@ -17,3 +17,18 @@ class SalaryStatNotFound(AssetException):
 class NoMatchUserSalary(AssetException):
     status_code = status.HTTP_404_NOT_FOUND
     detail = "uuid와 매칭되는 UserSalary 정보를 못 찾았습니다."
+
+
+class NoMatchJobSalary(AssetException):
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "uuid와 매칭되는 NoMatchJobSalary 정보를 못 찾았습니다."
+
+
+class NoMatchUserProfile(AssetException):
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "uuid와 매칭되는 UserProfile 정보를 못 찾았습니다."
+
+
+class NoUserProfileSaveRate(AssetException):
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "uuid와 매칭되는 UserProfile의 save_rate 정보를 못 찾았습니다."

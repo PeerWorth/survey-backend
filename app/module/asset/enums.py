@@ -25,3 +25,16 @@ class CarRank(StrEnum):
     GRANDEUR = "grandeur"
     BENZ = "benz"
     PORSCHE = "porsche"
+
+    @classmethod
+    def get_car_rank(cls, asset: int) -> str:
+        if asset <= 21_720_000:
+            return cls.PUBLIC_TRANSPORT.value
+        elif asset <= 40_000_000:
+            return cls.AVANTE.value
+        elif asset <= 88_700_000:
+            return cls.GRANDEUR.value
+        elif asset <= 237_200_000:
+            return cls.BENZ.value
+        else:
+            return cls.PORSCHE.value
