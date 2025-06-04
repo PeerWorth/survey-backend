@@ -42,6 +42,10 @@ class AssetService:
         saved = await self.user_salary_repo.save(user_salary)
         return bool(saved)
 
+    async def get_user_profile(self, unique_id: uuid.UUID) -> UserProfile | None:
+        salary_id = unique_id.bytes
+        return await self.user_profile_repo.get_by_salary_id(salary_id)
+
     async def save_user_profile(self, user_profile_request: UserProfilePostRequest) -> bool:
         data = user_profile_request.model_dump()
         uid: uuid.UUID = data.pop("unique_id")
@@ -79,5 +83,4 @@ class AssetService:
 
         percentage = 100 - int((user_asset / job_salary.avg) * 100)
 
-        print(f"{user_asset=}, {job_salary.avg=}")
         return max(0, min(percentage, 100))
