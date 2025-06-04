@@ -5,9 +5,9 @@ from app.module.asset.model import UserProfile
 
 
 class UserProfileRepository(BaseRepository):
-    async def save(self, instance: UserProfile) -> UserProfile | None:
+    async def save(self, instance: UserProfile, refresh=False) -> UserProfile | None:
         self.session.add(instance)
-        return await self.commit_and_refresh(instance)
+        return await self.commit_and_optional_refresh(instance, refresh)
 
     async def get(self, id: int) -> UserProfile | None:
         return await self._get_by_id(UserProfile, id)

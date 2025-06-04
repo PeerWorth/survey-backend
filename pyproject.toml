@@ -67,6 +67,7 @@ pydantic = "^2.9.1"
 openpyxl = "^3.1.5"
 dotenv = "^0.9.9"
 python-dotenv = "^1.1.0"
+pyinstrument = "^5.0.2"
 
 
 [build-system]
