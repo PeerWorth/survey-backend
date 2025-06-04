@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Query
+from pydantic import UUID4
 
 from app.api.asset.v1.constant import SALARY_THOUSAND_WON
 from app.api.asset.v1.dependencies.rate_limiter import salary_rate_limit_guard
@@ -9,8 +12,8 @@ from app.api.asset.v1.schemas.asset_schema import (
     UserSalaryPostRequest,
     UserSalaryPostResponse,
 )
-from app.module.asset.errors.asset_error import SalaryStatNotFound
-from app.module.asset.model import SalaryStat
+from app.module.asset.errors.asset_error import NoMatchUserProfile, NoUserProfileSaveRate, SalaryStatNotFound
+from app.module.asset.model import SalaryStat, UserProfile
 from app.module.asset.services.asset_service import AssetService
 
 asset_router = APIRouter(prefix="/v1")
@@ -54,7 +57,25 @@ async def submit_user_profile(
 ) -> UserCarRankResponse:
     await asset_service.save_user_profile(request_data)
 
-    car: str = await asset_service.get_user_rank(request_data.unique_id, request_data.save_rate)
+    car: str = await asset_service.get_user_car(request_data.unique_id, request_data.save_rate)
+    percentage: int = await asset_service.get_user_percentage(request_data.unique_id, request_data.save_rate)
 
-    # TODO: cold-start 데이터가 완료가 되면, 퍼센티지를 반환하겠습니다.
-    return UserCarRankResponse(car=car, percentage=1)
+    return UserCarRankResponse(car=car, percentage=percentage)
+
+
+@asset_router.get("/profile", response_model=UserCarRankResponse, summary="유저 등급 공유 링크")
+async def user_profile_link(
+    unique_id: Annotated[UUID4, Query(description="유저 고유 링크 ID")],
+    asset_service: AssetService = Depends(),
+) -> UserCarRankResponse:
+    user_profile: UserProfile | None = await asset_service.get_user_profile(unique_id)
+    if user_profile is None:
+        raise NoMatchUserProfile()
+
+    if user_profile.save_rate is None:
+        raise NoUserProfileSaveRate()
+
+    car: str = await asset_service.get_user_car(unique_id, user_profile.save_rate)
+    percentage: int = await asset_service.get_user_percentage(unique_id, user_profile.save_rate)
+
+    return UserCarRankResponse(car=car, percentage=percentage)
