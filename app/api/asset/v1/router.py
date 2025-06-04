@@ -54,7 +54,7 @@ async def submit_user_profile(
 ) -> UserCarRankResponse:
     await asset_service.save_user_profile(request_data)
 
-    car: str = await asset_service.get_user_rank(request_data.unique_id, request_data.save_rate)
+    car: str = await asset_service.get_user_car(request_data.unique_id, request_data.save_rate)
+    percentage: int = await asset_service.get_user_percentage(request_data.unique_id, request_data.save_rate)
 
-    # TODO: cold-start 데이터가 완료가 되면, 퍼센티지를 반환하겠습니다.
-    return UserCarRankResponse(car=car, percentage=1)
+    return UserCarRankResponse(car=car, percentage=percentage)
