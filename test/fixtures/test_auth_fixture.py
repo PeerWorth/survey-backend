@@ -1,3 +1,5 @@
+from test.fixtures.test_auth_model import AuthTestData
+
 import pytest
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -5,26 +7,38 @@ from app.module.auth.model import User, UserConsent
 
 
 @pytest.fixture
-async def user(session: AsyncSession) -> User:
-    test_user = User(email="test@example.com")
-    session.add(test_user)
-    await session.commit()
-    await session.refresh(test_user)
-    return test_user
+def user_factory(session: AsyncSession):
+    async def _create(email: str = "test@example.com") -> User:
+        user = User(email=email)
+        session.add(user)
+        await session.commit()
+        await session.refresh(user)
+        return user
+
+    return _create
 
 
 @pytest.fixture
-async def user_consent(session: AsyncSession, user: User) -> UserConsent:
-    consent = UserConsent(user_id=user.id, event="privacy_policy", agree=True)
-    session.add(consent)
-    await session.commit()
-    await session.refresh(consent)
-    return consent
+def user_consent_factory(session: AsyncSession):
+    async def _create(user: User, event: str = "privacy_policy", agree: bool = True) -> UserConsent:
+        consent = UserConsent(user_id=user.id, event=event, agree=agree)
+        session.add(consent)
+        await session.commit()
+        await session.refresh(consent)
+        return consent
+
+    return _create
 
 
-@pytest.fixture(scope="function")
-async def setup_all(
-    user,
-    user_consent,
-):
-    pass
+@pytest.fixture
+def auth_data_builder(user_factory, user_consent_factory):
+    class AuthDataBuilder:
+        async def build(self) -> AuthTestData:
+            user = await user_factory()
+            consent = await user_consent_factory(user)
+            return AuthTestData(
+                user=user,
+                user_consent=consent,
+            )
+
+    return AuthDataBuilder()

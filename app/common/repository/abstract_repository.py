@@ -21,9 +21,9 @@ class BaseRepository(ABC, Generic[T]):
             if refresh:
                 await self.session.refresh(instance)
             return instance
-        except IntegrityError:
+        except IntegrityError as e:
             await self.session.rollback()
-            return None
+            raise e
 
     @abstractmethod
     async def save(self, instance: T, refresh: bool = False) -> Optional[T]:
