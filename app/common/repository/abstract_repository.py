@@ -15,17 +15,18 @@ class BaseRepository(ABC, Generic[T]):
     def __init__(self, session: AsyncSession = Depends(get_mysql_session_router)):
         self.session = session
 
-    async def commit_and_refresh(self, instance: T) -> Optional[T]:
+    async def commit_and_optional_refresh(self, instance: T, refresh: bool = False) -> Optional[T]:
         try:
             await self.session.commit()
-            await self.session.refresh(instance)
+            if refresh:
+                await self.session.refresh(instance)
             return instance
-        except IntegrityError:
+        except IntegrityError as e:
             await self.session.rollback()
-            return None
+            raise e
 
     @abstractmethod
-    async def save(self, instance: T) -> Optional[T]:
+    async def save(self, instance: T, refresh: bool = False) -> Optional[T]:
         """인스턴스 저장 후 커밋하고 리턴"""
         ...
 

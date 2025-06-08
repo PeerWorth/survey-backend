@@ -57,15 +57,14 @@ async def submit_user_profile(
 ) -> UserCarRankResponse:
     await asset_service.save_user_profile(request_data)
 
-    car: str = await asset_service.get_user_car(request_data.unique_id, request_data.save_rate)
-    percentage: int = await asset_service.get_user_percentage(request_data.unique_id, request_data.save_rate)
-
+    car = await asset_service.get_user_car(request_data.unique_id, request_data.save_rate)
+    percentage = await asset_service.get_user_percentage(request_data.unique_id, request_data.save_rate)
     return UserCarRankResponse(car=car, percentage=percentage)
 
 
 @asset_router.get("/profile", response_model=UserCarRankResponse, summary="유저 등급 공유 링크")
 async def user_profile_link(
-    unique_id: Annotated[UUID4, Query(description="유저 고유 링크 ID")],
+    unique_id: Annotated[UUID4, Query(description="유저 고유 UUID")],
     asset_service: AssetService = Depends(),
 ) -> UserCarRankResponse:
     user_profile: UserProfile | None = await asset_service.get_user_profile(unique_id)

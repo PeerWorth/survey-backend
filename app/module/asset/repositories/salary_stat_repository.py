@@ -5,9 +5,9 @@ from app.module.asset.model import SalaryStat
 
 
 class SalaryStatRepository(BaseRepository):
-    async def save(self, instance: SalaryStat):
+    async def save(self, instance: SalaryStat, refresh=False):
         self.session.add(instance)
-        return await self.commit_and_refresh(instance)
+        return await self.commit_and_optional_refresh(instance, refresh)
 
     async def get(self, stat_id: int) -> SalaryStat | None:
         return await self._get_by_id(SalaryStat, stat_id)
@@ -24,7 +24,7 @@ class SalaryStatRepository(BaseRepository):
 
         if existing:
             existing.avg = salary_stat.avg
-            return await self.commit_and_refresh(existing)
+            return await self.commit_and_optional_refresh(existing)
         else:
             self.session.add(salary_stat)
-            return await self.commit_and_refresh(salary_stat)
+            return await self.commit_and_optional_refresh(salary_stat)
