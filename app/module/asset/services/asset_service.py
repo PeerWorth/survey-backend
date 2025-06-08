@@ -29,32 +29,6 @@ class AssetService:
     async def get_jobs(self) -> list[Job] | None:
         return await self.job_repo.gets()
 
-    async def save_user_salary(self, user_salary_request: UserSalaryPostRequest) -> bool:
-        data = user_salary_request.model_dump()
-
-        uid: uuid.UUID = data.pop("unique_id")
-
-        data["id"] = uid.bytes
-        data["salary"] = data["salary"] * SALARY_THOUSAND_WON
-        user_salary = UserSalary(**data)
-
-        saved = await self.user_salary_repo.save(user_salary)
-        return bool(saved)
-
-    async def get_user_profile(self, unique_id: uuid.UUID) -> UserProfile | None:
-        salary_id = unique_id.bytes
-        return await self.user_profile_repo.get_by_salary_id(salary_id)
-
-    async def save_user_profile(self, user_profile_request: UserProfilePostRequest) -> bool:
-        data = user_profile_request.model_dump()
-        uid: uuid.UUID = data.pop("unique_id")
-
-        data["salary_id"] = uid.bytes
-
-        user_profile = UserProfile(**data)
-        saved = await self.user_profile_repo.save(user_profile)
-        return bool(saved)
-
     async def get_job_salary(self, job_id: int, experience: int) -> SalaryStat | None:
         return await self.salary_stat_repo.get_by_job_id_experience(job_id, experience)
 
@@ -83,3 +57,29 @@ class AssetService:
         percentage = 100 - int((user_asset / job_salary.avg) * 100)
 
         return max(0, min(percentage, 100))
+
+    async def get_user_profile(self, unique_id: uuid.UUID) -> UserProfile | None:
+        salary_id = unique_id.bytes
+        return await self.user_profile_repo.get_by_salary_id(salary_id)
+
+    async def save_user_salary(self, user_salary_request: UserSalaryPostRequest) -> bool:
+        data = user_salary_request.model_dump()
+
+        uid: uuid.UUID = data.pop("unique_id")
+
+        data["id"] = uid.bytes
+        data["salary"] = data["salary"] * SALARY_THOUSAND_WON
+        user_salary = UserSalary(**data)
+
+        saved = await self.user_salary_repo.save(user_salary)
+        return bool(saved)
+
+    async def save_user_profile(self, user_profile_request: UserProfilePostRequest) -> bool:
+        data = user_profile_request.model_dump()
+        uid: uuid.UUID = data.pop("unique_id")
+
+        data["salary_id"] = uid.bytes
+
+        user_profile = UserProfile(**data)
+        saved = await self.user_profile_repo.save(user_profile)
+        return bool(saved)

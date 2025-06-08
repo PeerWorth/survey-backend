@@ -1,10 +1,11 @@
-from test.fixtures.test_asset_model import AssetTestData
-from uuid import uuid4
+from test.fixtures.test_model.test_asset_model import AssetTestData
+from uuid import UUID, uuid4
 
 import pytest
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.module.asset.model import Job, JobGroup, SalaryStat, UserProfile, UserSalary
+from app.module.auth.model import User
 
 
 @pytest.fixture
@@ -46,11 +47,17 @@ def salary_stat_factory(session: AsyncSession):
 
 @pytest.fixture
 def user_salary_factory(session: AsyncSession):
-    async def _create(job: Job, user_id: int = 1, experience: int = 2, salary: int = 50000000, uid=None) -> UserSalary:
+    async def _create(
+        user: User,
+        job: Job,
+        experience: int = 2,
+        salary: int = 50000000,
+        uid: UUID | None = None,
+    ) -> UserSalary:
         uid = uid or uuid4()
         us = UserSalary(
-            id=uid,
-            user_id=user_id,
+            id=uid.bytes,
+            user_id=user.id,
             job_id=job.id,
             experience=experience,
             salary=salary,
@@ -73,7 +80,7 @@ def user_profile_factory(session: AsyncSession):
         monthly_rent: bool = True,
     ) -> UserProfile:
         profile = UserProfile(
-            salary_id=user_salary.id.bytes,
+            salary_id=user_salary.id,
             age=age,
             save_rate=save_rate,
             has_car=has_car,
@@ -89,6 +96,7 @@ def user_profile_factory(session: AsyncSession):
 
 @pytest.fixture
 def asset_data_builder(
+    user_factory,
     job_group_factory,
     job_factory,
     salary_stat_factory,
@@ -97,10 +105,11 @@ def asset_data_builder(
 ):
     class AssetDataBuilder:
         async def build(self) -> AssetTestData:
+            user = await user_factory()
             group = await job_group_factory()
             job = await job_factory(group=group)
             stat = await salary_stat_factory(job)
-            us = await user_salary_factory(job)
+            us = await user_salary_factory(user=user, job=job)
             profile = await user_profile_factory(us)
             return AssetTestData(
                 job_group=group,

@@ -1,7 +1,10 @@
 import uuid
+from test.fixtures.test_full_fixture import FullTestDataBuilder
+from test.fixtures.test_model.test_full_model import FullTestData
 
 import pytest
 
+from app.api.asset.v1.constant import SALARY_THOUSAND_WON
 from app.api.asset.v1.schemas.asset_schema import UserProfilePostRequest, UserSalaryPostRequest
 from app.module.asset.repositories.job_repository import JobRepository
 from app.module.asset.repositories.salary_stat_repository import SalaryStatRepository
@@ -21,14 +24,19 @@ class TestAssetService:
             job_repo=JobRepository(session),
         )
 
-    async def test_get_user_car(self, setup_all):
+    async def test_get_user_car(self, full_test_data_builder: FullTestDataBuilder):
+        table_data: FullTestData = await full_test_data_builder.build()
+
         uid = uuid.uuid4()
-
-        saved = await self.service.save_user_salary(
-            UserSalaryPostRequest(unique_id=uid, job_id=1, experience=2, salary=5000)
+        user_salary_input = table_data.user_salary.salary // SALARY_THOUSAND_WON
+        await self.service.save_user_salary(
+            UserSalaryPostRequest(
+                unique_id=uid,
+                job_id=table_data.job.id,
+                experience=table_data.user_salary.experience,
+                salary=user_salary_input,
+            )
         )
-
-        assert saved is True
 
         await self.service.save_user_profile(
             UserProfilePostRequest(unique_id=uid, age=30, save_rate=50, has_car=False, monthly_rent=True)
@@ -36,3 +44,42 @@ class TestAssetService:
 
         car = await self.service.get_user_car(uid, 50)
         assert isinstance(car, str)
+
+    async def test_get_user_percentage(self, full_test_data_builder: FullTestDataBuilder):
+        table_data: FullTestData = await full_test_data_builder.build()
+
+        uid = uuid.uuid4()
+        user_salary_input = table_data.user_salary.salary // SALARY_THOUSAND_WON
+        await self.service.save_user_salary(
+            UserSalaryPostRequest(
+                unique_id=uid,
+                job_id=table_data.job.id,
+                experience=table_data.user_salary.experience,
+                salary=user_salary_input,
+            )
+        )
+
+        await self.service.save_user_profile(
+            UserProfilePostRequest(unique_id=uid, age=30, save_rate=50, has_car=False, monthly_rent=True)
+        )
+
+        percentage = await self.service.get_user_percentage(uid, 50)
+        assert isinstance(percentage, int)
+
+    async def test_get_user_percentage_over_0(self, full_test_data_builder: FullTestDataBuilder):
+        table_data: FullTestData = await full_test_data_builder.build()
+
+        uid = uuid.uuid4()
+
+        await self.service.save_user_salary(
+            UserSalaryPostRequest(
+                unique_id=uid, job_id=table_data.job.id, experience=table_data.user_salary.experience, salary=100_000
+            )
+        )
+
+        await self.service.save_user_profile(
+            UserProfilePostRequest(unique_id=uid, age=30, save_rate=99, has_car=False, monthly_rent=True)
+        )
+
+        percentage = await self.service.get_user_percentage(uid, 99)
+        assert percentage == 0

@@ -1,4 +1,4 @@
-from test.fixtures.test_auth_model import AuthTestData
+from test.fixtures.test_model.test_auth_model import AuthTestData
 
 import pytest
 from sqlmodel.ext.asyncio.session import AsyncSession
