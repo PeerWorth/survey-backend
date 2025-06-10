@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Path
 from pydantic import UUID4
 
 from app.api.asset.v1.constant import SALARY_THOUSAND_WON
@@ -62,9 +62,9 @@ async def submit_user_profile(
     return UserCarRankResponse(car=car, percentage=percentage)
 
 
-@asset_router.get("/profile", response_model=UserCarRankResponse, summary="유저 등급 공유 링크")
+@asset_router.get("/profile/{unique_id}", response_model=UserCarRankResponse, summary="유저 등급 공유 링크")
 async def user_profile_link(
-    unique_id: Annotated[UUID4, Query(description="유저 고유 UUID")],
+    unique_id: Annotated[UUID4, Path(description="유저 고유 UUID")],
     asset_service: AssetService = Depends(),
 ) -> UserCarRankResponse:
     user_profile: UserProfile | None = await asset_service.get_user_profile(unique_id)
