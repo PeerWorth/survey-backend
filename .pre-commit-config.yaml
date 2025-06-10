@@ -29,13 +29,12 @@ repos:
     hooks:
     -   id: mypy
 
-# TODO: pytest 돌입 후 실행 예정
-# -   repo: local
-#     hooks:
-#     -   id: pytest
-#         name: pytest
-#         entry: sh -c 'ENVIRONMENT=test poetry run pytest -n 0'
-#         language: system
-#         types: [python]
-#         default_stages: [commit]
-#         require_serial: true
+-   repo: local
+    hooks:
+    -   id: pytest
+        name: pytest
+        entry: sh -c 'ENVIRONMENT=test poetry run pytest -n 0'
+        language: system
+        types: [python]
+        default_stages: [commit]
+        require_serial: true

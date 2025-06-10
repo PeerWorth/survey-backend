@@ -7,6 +7,16 @@ class JobResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
+            "example": {
+                "id": 1,
+                "name": "개발 전체",
+            }
+        },
+    )
+
 
 class UserSalaryPostRequest(BaseModel):
     unique_id: UUID4
@@ -38,11 +48,6 @@ class UserSalaryPostResponse(BaseModel):
     )
 
 
-class JobsGetResponse(BaseModel):
-    job_id: int = Field(..., description="직무 id, 추후 POST 요청 시 선택한 직무 id 반환")
-    name: str = Field(..., description="직무명")
-
-
 class UserProfilePostRequest(BaseModel):
     unique_id: UUID4 = Field(..., description="클라이언트 uuid")
     age: int = Field(..., ge=18, le=50, description="나이")
@@ -50,10 +55,25 @@ class UserProfilePostRequest(BaseModel):
     has_car: bool = Field(..., description="자동차 보유")
     monthly_rent: bool = Field(..., description="웰세 여부")
 
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(
+        from_attributes=True,
+        use_enum_values=True,
+        json_schema_extra={
+            "example": {
+                "unique_id": "2323f2ac-4066-4e32-9412-0321c70dd8dc",
+                "age": 30,
+                "save_rate": 50,
+                "has_car": False,
+                "monthly_rent": True,
+            }
+        },
+    )
 
 
 class UserCarRankResponse(BaseModel):
     car: str = Field(..., description="자동차 등급")
     percentage: int = Field(..., description="비교 등급")
+
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"car": "benz", "percentage": 25}},
+    )

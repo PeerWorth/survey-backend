@@ -7,9 +7,9 @@ from app.module.asset.model import UserSalary
 
 
 class UserSalaryRepository(BaseRepository):
-    async def save(self, instance: UserSalary) -> UserSalary | None:
+    async def save(self, instance: UserSalary, refresh=False) -> UserSalary | None:
         self.session.add(instance)
-        return await self.commit_and_refresh(instance)
+        return await self.commit_and_optional_refresh(instance, refresh)
 
     async def get(self, salary_id: int) -> UserSalary | None:
         return await self._get_by_id(UserSalary, salary_id)

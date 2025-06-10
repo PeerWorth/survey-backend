@@ -20,16 +20,7 @@ load_dotenv()
 ENVIRONMENT = getenv("ENVIRONMENT", None)
 
 
-if ENVIRONMENT == EnvironmentType.LOCAL.value or ENVIRONMENT == EnvironmentType.TEST.value:
-    app = FastAPI()
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-elif ENVIRONMENT == EnvironmentType.PROD.value:
+if ENVIRONMENT == EnvironmentType.PROD.value:
     app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
     app.add_middleware(
         CORSMiddleware,
@@ -40,7 +31,14 @@ elif ENVIRONMENT == EnvironmentType.PROD.value:
     )
 
 else:
-    raise ValueError(f"ENVIRONMENT 환경 변수가 잘못되었거나 설정되지 않았습니다. 현재 값: {ENVIRONMENT}")
+    app = FastAPI()
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 
 # INFO: 도메인 별, 에러 핸들링 적용

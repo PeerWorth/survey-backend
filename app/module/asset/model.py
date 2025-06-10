@@ -1,5 +1,5 @@
 from typing import Optional
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 from sqlalchemy import BINARY, Column, ForeignKey, UniqueConstraint
 from sqlmodel import Field, Relationship
@@ -44,7 +44,7 @@ class SalaryStat(TimestampMixin, table=True):
 class UserSalary(TimestampMixin, table=True):
     __tablename__: str = "user_salary"
 
-    id: UUID = Field(
+    id: bytes = Field(
         default_factory=uuid4,
         sa_column=Column("id", BINARY(16), primary_key=True),
     )

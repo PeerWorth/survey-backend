@@ -47,14 +47,6 @@ if ENVIRONMENT == EnvironmentType.LOCAL.value or ENVIRONMENT == EnvironmentType.
         connect_args={"connect_timeout": CONNECTION_TIMEOUT_SECOND},
     )
 
-    # INFO: api 별 쿼리 실행 계획 확인을 위한 custom 이벤트 리스너
-    # if QUERY_LOG == "True":
-
-    #     @event.listens_for(mysql_engine.sync_engine, "before_cursor_execute")
-    #     def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
-    #         full_query = statement % parameters
-    #         print(full_query)
-    #         print("_____")
 
 elif ENVIRONMENT == EnvironmentType.DEV.value:
     MYSQL_URL = getenv("DEV_MYSQL_URL", None)
@@ -118,12 +110,19 @@ def _after_cursor_execute(
     executemany: bool,
 ) -> None:
     total_ms = (time.time() - context._query_start_time) * 1000
+
+    try:
+        if isinstance(parameters, dict):
+            formatted_query = statement % {k: repr(v) for k, v in parameters.items()}
+        else:
+            formatted_query = statement % tuple(repr(v) for v in parameters)
+    except Exception:
+        formatted_query = f"{statement} -- {parameters}"
+
     if total_ms > 200:
-        db_logger.warning(
-            f"[SLOWQUERY] total_ms: {total_ms}ms: {statement=}",
-        )
+        db_logger.warning(f"[SLOWQUERY] {total_ms=:.2f}ms\n{formatted_query}")
     else:
-        db_logger.debug(f"total_ms: {total_ms}ms: {statement=}", extra={"tag": LogTag.QUERY.value})
+        db_logger.debug(f"{total_ms=:.2f}ms\n{formatted_query}", extra={"tag": LogTag.QUERY.value})
 
 
 mysql_session_factory = sessionmaker(bind=mysql_engine, class_=AsyncSession, expire_on_commit=False)

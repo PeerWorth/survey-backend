@@ -5,9 +5,9 @@ from app.module.asset.model import Job
 
 
 class JobRepository(BaseRepository):
-    async def save(self, instance: Job) -> Job | None:
+    async def save(self, instance: Job, refresh=False) -> Job | None:
         self.session.add(instance)
-        return await self.commit_and_refresh(instance)
+        return await self.commit_and_optional_refresh(instance, refresh)
 
     async def get(self, job_id: int) -> Job | None:
         return await self._get_by_id(Job, job_id)
