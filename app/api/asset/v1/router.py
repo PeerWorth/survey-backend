@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends, Path
 from pydantic import UUID4
 
 from app.api.asset.v1.constant import SALARY_THOUSAND_WON
-from app.api.asset.v1.dependencies.rate_limiter import salary_rate_limit_guard
 from app.api.asset.v1.schemas.asset_schema import (
     JobResponse,
     UserCarRankResponse,
@@ -31,7 +30,7 @@ async def get_jobs(
     "/salary",
     summary="사용자 정보 입력 후 연봉 비교 결과 반환",
     response_model=UserSalaryPostResponse,
-    dependencies=[Depends(salary_rate_limit_guard)],
+    # dependencies=[Depends(salary_rate_limit_guard)],
 )
 async def submit_user_salary(
     request_data: UserSalaryPostRequest,
