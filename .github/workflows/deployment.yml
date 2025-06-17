@@ -12,6 +12,8 @@ jobs:
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
@@ -20,44 +22,67 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Bump patch version and update VERSION file
+    - name: Bump version from latest tag (supports #major #minor)
       id: versioning
       run: |
-        VERSION=$(cat VERSION)
-        MAJOR=$(echo $VERSION | cut -d. -f1)
-        MINOR=$(echo $VERSION | cut -d. -f2)
-        PATCH=$(echo $VERSION | cut -d. -f3)
-        NEW_PATCH=$((PATCH + 1))
-        NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
-        echo "$NEW_VERSION" > VERSION
-        echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
-        echo "version_label=$NEW_VERSION" >> $GITHUB_OUTPUT
+        git fetch --tags
 
-    - name: Save github environment
-      run: |
-        VERSION=$(cat VERSION)
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        # 최신 태그 가져오기
+        LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+        VERSION=${LATEST_TAG#v}
+        IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
 
-    - name: Save env
+        # 최신 커밋 메시지 확인
+        COMMIT_MSG=$(git log -1 --pretty=%B)
+        echo "🔍 Latest commit message: $COMMIT_MSG"
+
+        # 증가 타입 판별
+        if [[ "$COMMIT_MSG" == *"#major"* ]]; then
+          MAJOR=$((MAJOR + 1))
+          MINOR=0
+          PATCH=0
+          INCREMENT_TYPE="major"
+        elif [[ "$COMMIT_MSG" == *"#minor"* ]]; then
+          MINOR=$((MINOR + 1))
+          PATCH=0
+          INCREMENT_TYPE="minor"
+        else
+          PATCH=$((PATCH + 1))
+          INCREMENT_TYPE="patch"
+        fi
+
+        NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
+        echo "🎯 Bumping $INCREMENT_TYPE version: $LATEST_TAG → $NEW_VERSION"
+
+        echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+        echo "new_tag=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+        # Git 태그 커밋
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git tag $NEW_VERSION
+        git push origin $NEW_VERSION
+
+
+    - name: Save .env
       run: echo "${{ secrets.BACKEND_ENV_CONTENTS }}" > .env
 
-    - name: Change files
-      run: |
-        cp -f docker-compose.prod.yml docker-compose.yml
+    - name: Change files for production
+      run: cp docker-compose.prod.yml docker-compose.yml
 
     - name: Zip Application
       run: zip -r app.zip . -x ".git/*" ".github/*"
 
     - name: Upload to S3
       run: |
-        aws s3 cp app.zip s3://${{ secrets.EB_BUCKET }}/app-${VERSION}.zip
+        aws s3 cp app.zip s3://${{ secrets.EB_BUCKET }}/app-${{ env.NEW_VERSION }}.zip
 
-    - name: Create new Elastic Beanstalk application version
+    - name: Create new Elastic Beanstalk Application Version
       run: |
         aws elasticbeanstalk create-application-version \
           --application-name ${{ secrets.EB_APPLICATION_NAME }} \
-          --version-label ${VERSION} \
-          --source-bundle S3Bucket=${{ secrets.EB_BUCKET }},S3Key=app-${VERSION}.zip
+          --version-label ${{ env.NEW_VERSION }} \
+          --source-bundle S3Bucket=${{ secrets.EB_BUCKET }},S3Key=app-${{ env.NEW_VERSION }}.zip
 
     - name: Wait for EB environment to be Ready
       run: |
@@ -77,4 +102,4 @@ jobs:
       run: |
         aws elasticbeanstalk update-environment \
           --environment-name ${{ secrets.EB_ENV_NAME }} \
-          --version-label ${VERSION}
+          --version-label ${{ env.NEW_VERSION }}
