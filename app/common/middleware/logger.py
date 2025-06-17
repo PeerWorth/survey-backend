@@ -17,7 +17,7 @@ middleware_logger = create_logger(name=__name__, level=env_enum.log_level, cloud
 
 
 class LoggingMiddleware(ExcludePathsMiddleware):
-    async def dispatch(self, request: Request, call_next):
+    async def custom_dispatch(self, request: Request, call_next):
         request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
         start = time.time()
 
