@@ -59,14 +59,17 @@ jobs:
         echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
         echo "new_tag=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-        # Git push를 위한 인증 정보 설정
+        # 인증 설정
         git config --global user.name "github-actions"
         git config --global user.email "github-actions@github.com"
+
+        # 원격 주소 재설정
         git remote set-url origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}.git
 
-        # 태그 생성 및 푸시
+        # 태그 생성 및 강제 푸시
         git tag $NEW_VERSION
-        git push origin $NEW_VERSION
+        git push https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}.git $NEW_VERSION
+
 
 
 
