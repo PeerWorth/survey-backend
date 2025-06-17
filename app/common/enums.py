@@ -12,3 +12,7 @@ class EnvironmentType(StrEnum):
     @property
     def log_level(self) -> str:
         return LogTag.INFO.value if self == EnvironmentType.PROD else LogTag.DEBUG.value
+
+    @property
+    def log_env(self) -> str:
+        return "dev" if self in (EnvironmentType.LOCAL, EnvironmentType.TEST) else self.value

@@ -1,23 +1,23 @@
 import time
 import uuid
 
-from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
 from app.common.enums import EnvironmentType
 from app.common.logger.config import create_logger
 from app.common.logger.constant import SLOW_LATENCY_MS
 from app.common.logger.enums import LogTag
+from app.common.logger.mixin import ExcludePathsMiddleware
 from main_config import settings
 
 env_enum: EnvironmentType = settings.environment
-cloudwatch_group = f"olass-{env_enum.value}-middleware"
+cloudwatch_group = f"olass-{env_enum.log_env}-middleware"
 
 middleware_logger = create_logger(name=__name__, level=env_enum.log_level, cloudwatch_group=cloudwatch_group)
 
 
-class LoggingMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
+class LoggingMiddleware(ExcludePathsMiddleware):
+    async def custom_dispatch(self, request: Request, call_next):
         request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
         start = time.time()
 
