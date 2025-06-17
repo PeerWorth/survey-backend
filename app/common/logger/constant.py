@@ -1,1 +1,2 @@
 SLOW_LATENCY_MS = 300
+EXCLUDE_PATHS = ["/health"]
