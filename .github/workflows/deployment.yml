@@ -24,12 +24,6 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Debug GH_PAT presence
-      run: |
-        echo "::notice:: GH_PAT starts with: ${GH_PAT:0:5}*****"
-        git remote -v
-
-
     - name: Bump version from latest tag (supports #major #minor)
       id: versioning
       env:
@@ -75,7 +69,7 @@ jobs:
 
         # 태그 생성 및 푸시
         git tag $NEW_VERSION
-        git push origin $NEW_VERSION
+        git push https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}.git $NEW_VERSION
 
     - name: Save .env
       run: echo "${{ secrets.BACKEND_ENV_CONTENTS }}" > .env
