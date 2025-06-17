@@ -8,6 +8,8 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      GH_PAT: ${{ secrets.GH_PAT }}
 
     steps:
     - name: Checkout Repository
@@ -23,10 +25,8 @@ jobs:
         aws-region: ${{ secrets.AWS_REGION }}
 
     - name: Debug GH_PAT presence
-      env:
-        GH_PAT: ${{ secrets.GH_PAT }}
       run: |
-        echo "::notice:: GH_PAT: ${GH_PAT}"
+        echo "::notice:: GH_PAT starts with: ${GH_PAT:0:5}*****"
         git remote -v
 
 
