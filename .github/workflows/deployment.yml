@@ -24,6 +24,8 @@ jobs:
 
     - name: Bump version from latest tag (supports #major #minor)
       id: versioning
+      env:
+        GH_PAT: ${{ secrets.GH_PAT }}
       run: |
         git fetch --tags
 
@@ -57,11 +59,15 @@ jobs:
         echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
         echo "new_tag=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-        # Git 태그 커밋
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
+        # Git push를 위한 인증 정보 설정
+        git config --global user.name "github-actions"
+        git config --global user.email "github-actions@github.com"
+        git remote set-url origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}.git
+
+        # 태그 생성 및 푸시
         git tag $NEW_VERSION
         git push origin $NEW_VERSION
+
 
 
     - name: Save .env
