@@ -4,7 +4,7 @@ from app.common.enums import EnvironmentType
 
 
 class Settings(BaseSettings):
-    environment: EnvironmentType
+    environment: EnvironmentType = EnvironmentType.LOCAL
     rate_limit_max_calls: int = 1
     rate_limit_period_sec_dev: int = 10
     rate_limit_period_sec_prod: int = 60 * 60 * 24
