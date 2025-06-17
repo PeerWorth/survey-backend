@@ -30,7 +30,6 @@ async def get_jobs(
     "/salary",
     summary="사용자 정보 입력 후 연봉 비교 결과 반환",
     response_model=UserSalaryPostResponse,
-    # dependencies=[Depends(salary_rate_limit_guard)],
 )
 async def submit_user_salary(
     request_data: UserSalaryPostRequest,
