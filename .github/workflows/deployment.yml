@@ -22,10 +22,13 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Print git remote and partial PAT
+    - name: Debug GH_PAT presence
+      env:
+        GH_PAT: ${{ secrets.GH_PAT }}
       run: |
-        echo "::notice:: GH_PAT : ${GH_PAT}"
+        echo "::notice:: GH_PAT: ${GH_PAT}"
         git remote -v
+
 
     - name: Bump version from latest tag (supports #major #minor)
       id: versioning
