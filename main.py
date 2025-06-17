@@ -26,10 +26,9 @@ if ENVIRONMENT == EnvironmentType.PROD.value:
         CORSMiddleware,
         allow_origins=["https://www.olass.co.kr"],
         allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "DELETE"],
-        allow_headers=["Authorization", "Content-Type"],
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
-
 else:
     app = FastAPI()
     app.add_middleware(

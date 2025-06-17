@@ -2,8 +2,9 @@ import uuid
 
 from fastapi import Depends
 
-from app.api.asset.v1.constant import SALARY_THOUSAND_WON
+from app.api.asset.v1.constant import EXPIRE_JOB_REDIS_SEC, JOB_REDIS_KEY, SALARY_THOUSAND_WON
 from app.api.asset.v1.schemas.asset_schema import UserProfilePostRequest, UserSalaryPostRequest
+from app.common.redis_repository.general_redis_repository import ListRedisRepository
 from app.module.asset.enums import CarRank
 from app.module.asset.errors.asset_error import NoMatchJobSalary, NoMatchUserSalary
 from app.module.asset.model import Job, SalaryStat, UserProfile, UserSalary
@@ -20,14 +21,23 @@ class AssetService:
         user_profile_repo: UserProfileRepository = Depends(),
         salary_stat_repo: SalaryStatRepository = Depends(),
         job_repo: JobRepository = Depends(),
+        job_cache_repo: ListRedisRepository = Depends(),
     ):
         self.user_salary_repo = user_salary_repo
         self.user_profile_repo = user_profile_repo
         self.salary_stat_repo = salary_stat_repo
         self.job_repo = job_repo
+        self.job_cache_repo = job_cache_repo
 
     async def get_jobs(self) -> list[Job] | None:
-        return await self.job_repo.gets()
+        cache_jobs: list | None = await self.job_cache_repo.get(JOB_REDIS_KEY)
+        if not cache_jobs:
+            jobs: list[Job] = await self.job_repo.gets()
+            job_dicts = [job.model_dump() for job in jobs]
+            await self.job_cache_repo.set(JOB_REDIS_KEY, job_dicts, EXPIRE_JOB_REDIS_SEC)
+            return jobs
+        else:
+            return [Job(**job_dict) for job_dict in cache_jobs]
 
     async def get_job_salary(self, job_id: int, experience: int) -> SalaryStat | None:
         return await self.salary_stat_repo.get_by_job_id_experience(job_id, experience)
