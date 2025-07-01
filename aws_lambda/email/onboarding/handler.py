@@ -1,14 +1,20 @@
-from service import send_onboarding_email
+import asyncio
+
+from aws_lambda.email.onboarding.repository import OnboardingRepository
+from aws_lambda.email.onboarding.service import send_onboarding_email
+from aws_lambda.email.shared.db_config import get_session
 
 
 def lambda_handler(event, context):
-    to_email = event.get("email")
-    name = event.get("name")
+    return asyncio.run(run_handler())
 
-    if not to_email:
-        raise ValueError("Missing required parameter: 'email'")
-    if not name:
-        raise ValueError("Missing required parameter: 'name'")
 
-    result = send_onboarding_email(to_email, name)
-    return {"status": "ok", "result": result}
+async def run_handler():
+    session = await get_session()
+    try:
+        repo = OnboardingRepository(session)
+        emails = await repo.get_agree_user_emails()
+        result = send_onboarding_email(emails)
+        return {"status": "ok", "result": result}
+    finally:
+        await session.close()

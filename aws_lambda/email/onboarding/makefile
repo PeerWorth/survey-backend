@@ -1,8 +1,11 @@
-PYTHON=python3.11
+include ../../../.env
+
+
+PYTHON=python3.12
 LAMBDA_NAME=olass-onboarding-email
 ZIP_FILE=function.zip
 REQ=requirements.txt
-ROLE_ARN=arn:aws:iam::590184068466:role/LambdaExecutionRole
+ROLE_ARN=arn:aws:iam::$(AWS_ACCOUNT_ID):role/$(AWS_LAMBDA_ROLE_NAME)
 REGION=ap-northeast-2
 HANDLER=handler.lambda_handler
 
