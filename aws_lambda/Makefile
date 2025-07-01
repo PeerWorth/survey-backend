@@ -1,7 +1,14 @@
-.PHONY: deploy-all deploy-onboarding deploy-newsletter
+.PHONY: all deploy-onboarding deploy-onboarding-layer
 
-deploy-all:
-	make -C handlers/email/onboarding deploy
+include .env
 
 deploy-onboarding:
-	make -C handlers/email/onboarding deploy
+	$(MAKE) -C handlers/email/onboarding deploy
+
+deploy-onboarding-layer:
+	$(MAKE) -C handlers/email/onboarding deploy-layer
+
+clean-onboarding:
+	$(MAKE) -C handlers/email/onboarding clean
+
+all: deploy-onboarding-layer deploy-onboarding
