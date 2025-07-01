@@ -8,7 +8,7 @@ from mypy_boto3_ses.client import SESClient
 
 def render_onboarding_template(name: str) -> str:
     base_dir = os.path.dirname(__file__)
-    template_dir = os.path.join(base_dir, "..", "common")
+    template_dir = os.path.join(base_dir, "..", "shared")
 
     env = Environment(loader=FileSystemLoader([template_dir, base_dir]), autoescape=select_autoescape(["html"]))
 
