@@ -1,8 +1,8 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from aws_lambda.email.onboarding.constant import MARKETING
-from aws_lambda.email.shared.model import User, UserConsent
+from aws_lambda.handlers.email.onboarding.constant import MARKETING
+from aws_lambda.shared.auth_model import User, UserConsent
 
 
 class OnboardingRepository:
