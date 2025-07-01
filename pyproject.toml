@@ -31,6 +31,9 @@ description = ""
 authors = ["kcw2297 <kcw2371@gmail.com>"]
 readme = "README.md"
 
+[virtualenvs]
+in-project = true
+
 [[tool.poetry.packages]]
 include = "app"
 
