@@ -2,21 +2,24 @@ import os
 from typing import cast
 
 import boto3
-from jinja2 import Template
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from mypy_boto3_ses.client import SESClient
 
 
-def render_template(name: str, start_link: str) -> str:
-    template_path = os.path.join(os.path.dirname(__file__), "template.html")
-    with open(template_path, "r", encoding="utf-8") as f:
-        html = f.read()
-    return Template(html).render(name=name, start_link=start_link)
+def render_onboarding_template(name: str) -> str:
+    base_dir = os.path.dirname(__file__)
+    template_dir = os.path.join(base_dir, "..", "common")
+
+    env = Environment(loader=FileSystemLoader([template_dir, base_dir]), autoescape=select_autoescape(["html"]))
+
+    template = env.get_template("template.html")
+    return template.render(name=name, subject="olass에 오신 걸 환영합니다!")
 
 
 def send_onboarding_email(to_email: str, name: str):
     ses = cast(SESClient, boto3.client("ses", region_name="ap-northeast-2"))
 
-    rendered_html = render_template(name, start_link="https://www.olass.co.kr")
+    rendered_html = render_onboarding_template(name)
 
     response = ses.send_email(
         Source="noreply@olass.co.kr",
