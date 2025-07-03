@@ -1,5 +1,6 @@
 import logging
 from logging import Logger
+from typing import cast
 
 import boto3
 import watchtower
@@ -35,7 +36,7 @@ logging.setLoggerClass(TaggedLogger)
 
 def create_logger(
     name: str,
-    level: str = "INFO",
+    level: str = LogTag.INFO.value,
     cloudwatch_group: str | None = None,
     retention_days: int = 14,
 ) -> Logger:
@@ -58,14 +59,14 @@ def create_logger(
                 boto3_client=cw_client,
                 log_group=cloudwatch_group,
                 create_log_group=True,
-                stream_name="{strftime:%Y-%m-%d}/{process_id}",
-                send_interval=30,
+                stream_name="{strftime:%Y-%m-%d}",
+                send_interval=10,
             )
             cw.setLevel(level)
             cw.setFormatter(ch.formatter)
             logger.addHandler(cw)
 
-            logs_client: CloudWatchLogsClient = boto3.client("logs", region_name="ap-northeast-2")
+            logs_client = cast(CloudWatchLogsClient, boto3.client("logs", region_name="ap-northeast-2"))
             logs_client.put_retention_policy(logGroupName=cloudwatch_group, retentionInDays=retention_days)
         except NoCredentialsError:
             logger.warning("AWS 자격 증명 없어서 CloudWatch 로그 미적용")
