@@ -1,9 +1,7 @@
-from sqlmodel import Field, Relationship
-
-from app.common.mixin.timestamp import TimestampMixin
+from sqlmodel import Field, Relationship, SQLModel
 
 
-class User(TimestampMixin, table=True):
+class User(SQLModel, table=True):
     __tablename__: str = "user"
 
     id: int = Field(default=None, primary_key=True)
@@ -18,7 +16,7 @@ class User(TimestampMixin, table=True):
     )
 
 
-class UserConsent(TimestampMixin, table=True):
+class UserConsent(SQLModel, table=True):
     __tablename__: str = "user_consent"
 
     id: int = Field(default=None, primary_key=True)

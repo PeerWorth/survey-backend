@@ -1,14 +1,12 @@
-.PHONY: all deploy-onboarding deploy-onboarding-layer
+.PHONY: deploy-shared deploy-dependencies-base deploy-handlers-email-onboarding deploy-all
 
-include .env
+deploy-shared:
+	$(MAKE) -C shared deploy
 
-deploy-onboarding:
+deploy-dependencies-base:
+	$(MAKE) -C dependencies/base deploy
+
+deploy-handlers-email-onboarding:
 	$(MAKE) -C handlers/email/onboarding deploy
 
-deploy-onboarding-layer:
-	$(MAKE) -C handlers/email/onboarding deploy-layer
-
-clean-onboarding:
-	$(MAKE) -C handlers/email/onboarding clean
-
-all: deploy-onboarding-layer deploy-onboarding
+deploy-all: deploy-shared deploy-dependencies-base deploy-handlers-email-onboarding

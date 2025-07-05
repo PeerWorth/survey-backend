@@ -7,13 +7,19 @@ from mypy_boto3_ses.client import SESClient
 
 
 def render_onboarding_template() -> str:
-    base_dir = os.path.dirname(__file__)
-    template_dir = os.path.abspath(os.path.join(base_dir, "..", "..", "..", "shared"))
+    base_dir = os.path.dirname(os.path.abspath(__file__))
 
-    env = Environment(loader=FileSystemLoader([template_dir, base_dir]), autoescape=select_autoescape(["html"]))
+    template_dir = os.path.join(base_dir, "template")
 
-    template = env.get_template("template.html")
-    return template.render(subject="olass에 오신 걸 환영합니다!")
+    env = Environment(
+        loader=FileSystemLoader(template_dir),
+        autoescape=select_autoescape(["html", "xml"]),
+    )
+
+    template = env.get_template("content.html")
+    html = template.render(unsubscribe_link="https://olass.co.kr/unsubscribe")
+
+    return html
 
 
 def send_onboarding_email(emails: list[str]):
@@ -21,14 +27,12 @@ def send_onboarding_email(emails: list[str]):
         return
 
     ses = cast(SESClient, boto3.client("ses", region_name="ap-northeast-2"))
-    rendered_html = render_onboarding_template()
-
     response = ses.send_email(
         Source="noreply@olass.co.kr",
         Destination={"ToAddresses": emails},
         Message={
             "Subject": {"Data": "🎉 olass에 오신 걸 환영합니다!"},
-            "Body": {"Html": {"Data": rendered_html}},
+            "Body": {"Html": {"Data": render_onboarding_template()}},
         },
     )
     return response
