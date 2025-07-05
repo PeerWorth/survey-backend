@@ -1,8 +1,8 @@
 import asyncio
 
-from aws_lambda.handlers.email.onboarding.repository import OnboardingRepository
-from aws_lambda.handlers.email.onboarding.service import send_onboarding_email
-from aws_lambda.shared.db_config import get_session
+from repository import OnboardingRepository
+from service import send_onboarding_email
+from shared.db_config import get_session
 
 
 def lambda_handler(event, context):
