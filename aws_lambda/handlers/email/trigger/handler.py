@@ -1,3 +1,4 @@
+import asyncio
 import json
 from os import getenv
 from typing import cast
@@ -13,7 +14,11 @@ if not SQS_QUEUE_URL:
 REGION = getenv("AWS_REGION", "ap-northeast-2")
 
 
-async def lambda_handler(event: dict, context):
+def lambda_handler(event, context):
+    return asyncio.run(_lambda_handler(event, context))
+
+
+async def _lambda_handler(event: dict, context):
     email_type = event.get("email_type")
     if not email_type:
         raise ValueError("이메일 타입을 정의해야만 합니다.")
@@ -34,6 +39,6 @@ async def lambda_handler(event: dict, context):
             "emails": email_batch,
         }
 
-        sqs.send_message(QueueUrl=SQS_QUEUE_URL, MessageBody=json.dumps(message))  # type: ignore[앞단 검증]
+        sqs.send_message(QueueUrl=SQS_QUEUE_URL, MessageBody=json.dumps(message))  # type: ignore
 
     return {"status": "ok", "total_sent_batch": len(user_emails_nested)}

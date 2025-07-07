@@ -1,8 +1,6 @@
-# from shared.db_config import get_session
 from constants import MAX_SINGLE_SEND_SIZE
 from repository import TriggerRepository
-
-from aws_lambda.shared.db_config import get_session
+from shared.db_config import get_session
 
 
 class TriggerService:
