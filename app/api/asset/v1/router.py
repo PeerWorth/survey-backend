@@ -15,6 +15,7 @@ from app.api.asset.v1.schemas.asset_schema import (
     UserSalaryResponse,
     UserSalaryResponseData,
 )
+from app.common.docs.responses import COMMON_ERROR_RESPONSES
 from app.module.asset.errors.asset_error import NoMatchUserProfile, NoUserProfileSaveRate, SalaryStatNotFound
 from app.module.asset.model import SalaryStat, UserProfile
 from app.module.asset.services.asset_service import AssetService
@@ -22,7 +23,9 @@ from app.module.asset.services.asset_service import AssetService
 asset_router = APIRouter(prefix="/v1")
 
 
-@asset_router.get("/jobs", summary="직무 데이터 반환", response_model=JobSuccessResponse)
+@asset_router.get(
+    "/jobs", summary="직무 데이터 반환", response_model=JobSuccessResponse, responses=COMMON_ERROR_RESPONSES
+)
 async def get_jobs(
     asset_service: AssetService = Depends(),
 ) -> JobSuccessResponse:
@@ -37,6 +40,7 @@ async def get_jobs(
     "/salary",
     summary="사용자 정보 입력 후 연봉 비교 결과 반환",
     response_model=UserSalaryResponse,
+    responses=COMMON_ERROR_RESPONSES,
 )
 async def submit_user_salary(
     request_data: UserSalaryPostRequest,
@@ -58,7 +62,12 @@ async def submit_user_salary(
     )
 
 
-@asset_router.post("/profile", response_model=UserCarRankResponse, summary="사용자 소비 패턴 입력 후 소비 등급 반환")
+@asset_router.post(
+    "/profile",
+    response_model=UserCarRankResponse,
+    summary="사용자 소비 패턴 입력 후 소비 등급 반환",
+    responses=COMMON_ERROR_RESPONSES,
+)
 async def submit_user_profile(
     request_data: UserProfilePostRequest,
     asset_service: AssetService = Depends(),
@@ -70,7 +79,12 @@ async def submit_user_profile(
     return UserCarRankResponse(code=status.HTTP_201_CREATED, data=UserCarRankData(car=car, percentage=percentage))
 
 
-@asset_router.get("/profile/{uniqueId}", response_model=UserCarRankResponse, summary="유저 등급 공유 링크")
+@asset_router.get(
+    "/profile/{uniqueId}",
+    response_model=UserCarRankResponse,
+    summary="유저 등급 공유 링크",
+    responses=COMMON_ERROR_RESPONSES,
+)
 async def user_profile_link(
     uniqueId: Annotated[UUID4, Path(description="유저 고유 UUID")],
     asset_service: AssetService = Depends(),
