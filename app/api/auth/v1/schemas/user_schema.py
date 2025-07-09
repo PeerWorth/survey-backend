@@ -11,6 +11,6 @@ class UserEmailRequest(BaseRequestModel):
     model_config = ConfigDict(
         from_attributes=True,
         json_schema_extra={
-            "example": {"unique_id": "2323f2ac-4066-4e32-9412-0321c70dd8dc", "email": "olass.@gmail.com", "agree": True}
+            "example": {"uniqueId": "2323f2ac-4066-4e32-9412-0321c70dd8dc", "email": "olass@gmail.com", "agree": True}
         },
     )

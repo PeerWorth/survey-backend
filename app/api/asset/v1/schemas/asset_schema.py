@@ -37,8 +37,8 @@ class UserSalaryPostRequest(BaseRequestModel):
         from_attributes=True,
         json_schema_extra={
             "example": {
-                "unique_id": "2323f2ac-4066-4e32-9412-0321c70dd8dc",
-                "job_id": 5,
+                "uniqueId": "2323f2ac-4066-4e32-9412-0321c70dd8dc",
+                "jobId": 5,
                 "experience": 2,
                 "salary": 4500,
             }
@@ -53,7 +53,7 @@ class UserSalaryResponseData(BaseModel):
 
     model_config = ConfigDict(
         from_attributes=True,
-        json_schema_extra={"example": {"user_experience": 5, "user_salary": 5500, "job_salary": 6000}},
+        json_schema_extra={"example": {"userExperience": 5, "userSalary": 5500, "jobSalary": 6000}},
     )
 
 
@@ -66,18 +66,18 @@ class UserProfilePostRequest(BaseRequestModel):
     age: int = Field(..., ge=18, le=50, description="나이")
     save_rate: int = Field(..., ge=0, le=100, description="저축률")
     has_car: bool = Field(..., description="자동차 보유")
-    is_monthly_rent: bool = Field(..., description="웰세 여부")
+    is_monthly_rent: bool = Field(..., description="월세 여부")
 
     model_config = ConfigDict(
         from_attributes=True,
         use_enum_values=True,
         json_schema_extra={
             "example": {
-                "unique_id": "2323f2ac-4066-4e32-9412-0321c70dd8dc",
+                "uniqueId": "2323f2ac-4066-4e32-9412-0321c70dd8dc",
                 "age": 30,
-                "save_rate": 50,
-                "has_car": False,
-                "monthly_rent": True,
+                "saveRate": 50,
+                "hasCar": False,
+                "isMonthlyRent": True,
             }
         },
     )

@@ -12,6 +12,8 @@ class BaseRequestModel(BaseModel):
     model_config = ConfigDict(
         alias_generator=to_camel,
         populate_by_name=True,
+        from_attributes=True,
+        use_enum_values=True,
     )
 
 
