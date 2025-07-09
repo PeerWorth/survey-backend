@@ -1,14 +1,15 @@
 from pydantic import UUID4, BaseModel, ConfigDict, Field
 
+from app.common.schemas.base_schema import BaseRequestModel, SuccessResponse
 
-class JobResponse(BaseModel):
+
+class JobItem(BaseModel):
     id: int
     name: str
 
-    model_config = ConfigDict(from_attributes=True)
-
     model_config = ConfigDict(
         from_attributes=True,
+        populate_by_name=True,
         json_schema_extra={
             "example": {
                 "id": 1,
@@ -18,7 +19,15 @@ class JobResponse(BaseModel):
     )
 
 
-class UserSalaryPostRequest(BaseModel):
+class JobResponseData(BaseModel):
+    items: list[JobItem]
+
+
+class JobSuccessResponse(SuccessResponse):
+    data: JobResponseData  # type: ignore[pydanticIssue]
+
+
+class UserSalaryPostRequest(BaseRequestModel):
     unique_id: UUID4
     job_id: int
     experience: int = Field(..., ge=0, le=10)
@@ -37,7 +46,7 @@ class UserSalaryPostRequest(BaseModel):
     )
 
 
-class UserSalaryPostResponse(BaseModel):
+class UserSalaryResponseData(BaseModel):
     user_experience: int
     user_salary: int
     job_salary: int
@@ -48,12 +57,16 @@ class UserSalaryPostResponse(BaseModel):
     )
 
 
-class UserProfilePostRequest(BaseModel):
+class UserSalaryResponse(SuccessResponse):
+    data: UserSalaryResponseData  # type: ignore[pydanticIssue]
+
+
+class UserProfilePostRequest(BaseRequestModel):
     unique_id: UUID4 = Field(..., description="클라이언트 uuid")
     age: int = Field(..., ge=18, le=50, description="나이")
     save_rate: int = Field(..., ge=0, le=100, description="저축률")
     has_car: bool = Field(..., description="자동차 보유")
-    monthly_rent: bool = Field(..., description="웰세 여부")
+    is_monthly_rent: bool = Field(..., description="웰세 여부")
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -70,10 +83,14 @@ class UserProfilePostRequest(BaseModel):
     )
 
 
-class UserCarRankResponse(BaseModel):
+class UserCarRankData(BaseModel):
     car: str = Field(..., description="자동차 등급")
     percentage: int = Field(..., description="비교 등급")
 
     model_config = ConfigDict(
         json_schema_extra={"example": {"car": "benz", "percentage": 25}},
     )
+
+
+class UserCarRankResponse(SuccessResponse):
+    data: UserCarRankData  # type: ignore[pydanticIssue]

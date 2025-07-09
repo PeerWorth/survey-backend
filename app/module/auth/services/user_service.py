@@ -34,7 +34,6 @@ class UserService:
         uid: uuid.UUID = data.pop("unique_id")
         email: str = data["email"]
         agree: bool = data["agree"]
-
         salary_record: UserSalary | None = await self.user_salary_repo.get_by_uuid(uid)
 
         if not salary_record:
