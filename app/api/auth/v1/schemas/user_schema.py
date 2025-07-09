@@ -1,7 +1,9 @@
-from pydantic import UUID4, BaseModel, ConfigDict, Field
+from pydantic import UUID4, ConfigDict, Field
+
+from app.common.schemas.base_schema import BaseRequestModel
 
 
-class UserEmailRequest(BaseModel):
+class UserEmailRequest(BaseRequestModel):
     unique_id: UUID4 = Field(..., description="클라이언트 uuid")
     email: str = Field(..., description="이메일")
     agree: bool = Field(..., description="이메일 수신 동의")

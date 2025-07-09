@@ -31,15 +31,15 @@ class TestAssetService:
         user_salary_input = table_data.user_salary.salary // SALARY_THOUSAND_WON
         await self.service.save_user_salary(
             UserSalaryPostRequest(
-                unique_id=uid,
-                job_id=table_data.job.id,
+                uniqueId=uid,
+                jobId=table_data.job.id,
                 experience=table_data.user_salary.experience,
                 salary=user_salary_input,
             )
         )
 
         await self.service.save_user_profile(
-            UserProfilePostRequest(unique_id=uid, age=30, save_rate=50, has_car=False, monthly_rent=True)
+            UserProfilePostRequest(uniqueId=uid, age=30, saveRate=50, hasCar=False, isMonthlyRent=True)
         )
 
         car = await self.service.get_user_car(uid, 50)
@@ -52,15 +52,15 @@ class TestAssetService:
         user_salary_input = table_data.user_salary.salary // SALARY_THOUSAND_WON
         await self.service.save_user_salary(
             UserSalaryPostRequest(
-                unique_id=uid,
-                job_id=table_data.job.id,
+                uniqueId=uid,
+                jobId=table_data.job.id,
                 experience=table_data.user_salary.experience,
                 salary=user_salary_input,
             )
         )
 
         await self.service.save_user_profile(
-            UserProfilePostRequest(unique_id=uid, age=30, save_rate=50, has_car=False, monthly_rent=True)
+            UserProfilePostRequest(uniqueId=uid, age=30, saveRate=50, hasCar=False, isMonthlyRent=True)
         )
 
         percentage = await self.service.get_user_percentage(uid, 50)
@@ -73,12 +73,12 @@ class TestAssetService:
 
         await self.service.save_user_salary(
             UserSalaryPostRequest(
-                unique_id=uid, job_id=table_data.job.id, experience=table_data.user_salary.experience, salary=100_000
+                uniqueId=uid, jobId=table_data.job.id, experience=table_data.user_salary.experience, salary=100_000
             )
         )
 
         await self.service.save_user_profile(
-            UserProfilePostRequest(unique_id=uid, age=30, save_rate=99, has_car=False, monthly_rent=True)
+            UserProfilePostRequest(uniqueId=uid, age=30, saveRate=99, hasCar=False, isMonthlyRent=True)
         )
 
         percentage = await self.service.get_user_percentage(uid, 99)
