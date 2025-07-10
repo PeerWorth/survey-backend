@@ -27,12 +27,17 @@ def send_onboarding_email(emails: list[str]):
         return
 
     ses = cast(SESClient, boto3.client("ses", region_name="ap-northeast-2"))
+
     response = ses.send_email(
         Source="noreply@olass.co.kr",
-        Destination={"ToAddresses": emails},
+        Destination={
+            "ToAddresses": ["noreply@olass.co.kr"],
+            "BccAddresses": emails,
+        },
         Message={
             "Subject": {"Data": "🎉 olass에 오신 걸 환영합니다!"},
             "Body": {"Html": {"Data": render_onboarding_template()}},
         },
     )
+
     return response
