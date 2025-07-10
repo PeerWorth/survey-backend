@@ -4,15 +4,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-class OnboardingRepository:
+class TriggerRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get_agree_user_emails(
-        self,
-    ) -> list[str]:
+    async def get_agreed_emails(self) -> list[tuple[int, str]]:
         stmt = (
-            select(User.email)
+            select(User.id, User.email)
             .join(UserConsent, User.id == UserConsent.user_id)
             .where(
                 UserConsent.event == MARKETING,
@@ -21,5 +19,5 @@ class OnboardingRepository:
         )
 
         result = await self.session.execute(stmt)
-        emails = [row[0] for row in result.all()]
-        return emails
+        rows = result.all()
+        return [(int(row[0]), str(row[1])) for row in rows]

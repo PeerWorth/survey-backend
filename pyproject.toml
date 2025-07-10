@@ -72,6 +72,7 @@ dotenv = "^0.9.9"
 python-dotenv = "^1.1.0"
 pyinstrument = "^5.0.2"
 mypy-boto3-ses = "^1.38.0"
+mypy-boto3-sqs = "^1.39.0"
 
 
 [build-system]
