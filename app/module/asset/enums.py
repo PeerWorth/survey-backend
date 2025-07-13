@@ -20,7 +20,7 @@ class Gender(StrEnum):
 
 
 class CarRank(StrEnum):
-    PUBLIC_TRANSPORT = "public_transportation"
+    PUBLIC_TRANSPORT = "publicTransportation"
     AVANTE = "avante"
     GRANDEUR = "grandeur"
     BENZ = "benz"
