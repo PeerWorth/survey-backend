@@ -841,6 +841,17 @@ files = [
 ]
 
 [[package]]
+name = "mypy-boto3-sqs"
+version = "1.39.0"
+description = "Type annotations for boto3 SQS 1.39.0 service generated with mypy-boto3-builder 8.11.0"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "mypy_boto3_sqs-1.39.0-py3-none-any.whl", hash = "sha256:ca434295143f811a9b8a1e9fd81f19a7213c3590ced5131cb648fc2107f4eaba"},
+    {file = "mypy_boto3_sqs-1.39.0.tar.gz", hash = "sha256:279d489e9b8ffb860f2dc6349608e9eb289ae0c8c3558739e9e62c595e456834"},
+]
+
+[[package]]
 name = "mypy-extensions"
 version = "1.1.0"
 description = "Type system extensions for programs checked with the mypy type checker."
@@ -1943,4 +1954,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "6b176cc40b83aa519b5b23a7ee8f2179e88c7727fe50062da18d5740a6aa936b"
+content-hash = "12bb71533cf2bc96501fa7cb87501575301bdd19ae4dd115a0856f26451258d6"

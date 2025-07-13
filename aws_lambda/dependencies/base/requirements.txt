@@ -1,0 +1,9 @@
+boto3
+jinja2
+mypy_boto3_ses
+mypy_boto3_sqs
+typing_extensions
+sqlmodel
+sqlalchemy[asyncio]
+aiomysql
+python-dotenv
