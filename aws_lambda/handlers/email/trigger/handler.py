@@ -1,5 +1,4 @@
 import asyncio
-import concurrent.futures
 from os import getenv
 
 import boto3
@@ -17,7 +16,16 @@ sns_publisher = SnsPublisher(sns, SNS_TOPIC_ARN)
 
 
 def lambda_handler(event, context):
-    return asyncio.run(_lambda_handler(event, context))
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+    if loop.is_running():
+        return loop.create_task(_lambda_handler(event, context))
+    else:
+        return loop.run_until_complete(_lambda_handler(event, context))
 
 
 async def _lambda_handler(event: dict, context):
@@ -33,12 +41,8 @@ async def _lambda_handler(event: dict, context):
     service = await EmailTargetService.create()
     user_emails_nested = await service.get_target_emails()
 
-    def publish(batch):
-        return sns_publisher.publish_email_batch(email_type.value, batch)
-
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-        futures = [executor.submit(publish, batch) for batch in user_emails_nested]
-        concurrent.futures.wait(futures)
+    for batch in user_emails_nested:
+        sns_publisher.publish_email_batch(email_type.value, batch)
 
     return {
         "status": "ok",
