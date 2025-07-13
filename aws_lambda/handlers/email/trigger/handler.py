@@ -1,17 +1,19 @@
 import asyncio
-import json
+import concurrent.futures
 from os import getenv
-from typing import cast
 
 import boto3
 from enums import EmailType
-from mypy_boto3_sqs.client import SQSClient
-from service import TriggerService
+from service import EmailTargetService
+from sns_publisher import SnsPublisher
 
-SQS_QUEUE_URL = getenv("SQS_QUEUE_URL", None)
-if not SQS_QUEUE_URL:
-    raise ValueError("SQS URL이 세팅되지 않았습니다.")
+SNS_TOPIC_ARN = getenv("SNS_TOPIC_ARN", "arn:aws:sns:ap-northeast-2:590184068466:olass-email")
 REGION = getenv("AWS_REGION", "ap-northeast-2")
+if not SNS_TOPIC_ARN:
+    raise ValueError("SNS_TOPIC_ARN이 환경변수에 세팅되지 않았습니다.")
+
+sns = boto3.client("sns", region_name=REGION)
+sns_publisher = SnsPublisher(sns, SNS_TOPIC_ARN)
 
 
 def lambda_handler(event, context):
@@ -19,26 +21,27 @@ def lambda_handler(event, context):
 
 
 async def _lambda_handler(event: dict, context):
-    email_type = event.get("email_type")
-    if not email_type:
+    email_type_raw = event.get("email_type")
+    if not email_type_raw:
         raise ValueError("이메일 타입을 정의해야만 합니다.")
 
     try:
-        email_type = EmailType(email_type)
+        email_type = EmailType(email_type_raw)
     except ValueError:
-        raise ValueError(f"지원하지 않는 이메일 타입입니다: {email_type}")
+        raise ValueError(f"지원하지 않는 이메일 타입입니다: {email_type_raw}")
 
-    trigger_service = await TriggerService.create()
-    user_emails_nested: list[list[tuple[int, str]]] = await trigger_service.get_target_emails()
+    service = await EmailTargetService.create()
+    user_emails_nested = await service.get_target_emails()
 
-    sqs = cast(SQSClient, boto3.client("sqs", region_name=REGION))
+    def publish(batch):
+        return sns_publisher.publish_email_batch(email_type.value, batch)
 
-    for email_batch in user_emails_nested:
-        message = {
-            "email_type": EmailType.ONBOARDING.value,
-            "emails": email_batch,
-        }
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        futures = [executor.submit(publish, batch) for batch in user_emails_nested]
+        concurrent.futures.wait(futures)
 
-        sqs.send_message(QueueUrl=SQS_QUEUE_URL, MessageBody=json.dumps(message))  # type: ignore
-
-    return {"status": "ok", "total_sent_batch": len(user_emails_nested)}
+    return {
+        "status": "ok",
+        "total_sent_batch": len(user_emails_nested),
+        "email_type": email_type.value,
+    }
