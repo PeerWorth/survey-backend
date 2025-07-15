@@ -1,4 +1,3 @@
-from contextlib import asynccontextmanager
 from os import getenv
 from typing import AsyncGenerator
 
@@ -6,28 +5,21 @@ from dotenv import load_dotenv
 from redis.asyncio import ConnectionPool, Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.common.enums import EnvironmentType
-from database.config import collection_mysql_session_factory, mysql_session_factory
-from database.constant import DEV_POOL_SIZE, PROD_POOL_SIZE, REDIS_SOCKET_CONNECTION_TIMEOUT_SECOND
+from app.common.enums import REDIS_URL, EnvironmentType
+from database.config import mysql_session_factory
+from database.constant import DB_POOL_SIZE, REDIS_SOCKET_CONNECTION_TIMEOUT_SECOND
 
 load_dotenv()
 
 ENVIRONMENT = getenv("ENVIRONMENT", None)
+if not ENVIRONMENT:
+    raise ValueError("ENVIRONMENT 환경변수가 설정되지 않았습니다.")
+try:
+    env = EnvironmentType(ENVIRONMENT)  # type: ignore[arg-type]
+except ValueError:
+    raise ValueError(f"정의되지 않는 환경 변수 값입니다. {ENVIRONMENT=}")
 
-
-if ENVIRONMENT == EnvironmentType.LOCAL.value or ENVIRONMENT == EnvironmentType.TEST.value:
-    REDIS_HOST = getenv("LOCAL_REDIS_HOST", None)
-    REDIS_POOL_SIZE = DEV_POOL_SIZE
-elif ENVIRONMENT == EnvironmentType.DEV.value:
-    REDIS_HOST = getenv("DEV_REDIS_HOST", None)
-    REDIS_POOL_SIZE = DEV_POOL_SIZE
-elif ENVIRONMENT == EnvironmentType.PROD.value:
-    REDIS_HOST = getenv("PROD_REDIS_HOST", None)
-    REDIS_POOL_SIZE = PROD_POOL_SIZE
-else:
-    raise ValueError(f"{ENVIRONMENT} 환경변수 설정이 잘못되었습니다.")
-
-
+REDIS_HOST = REDIS_URL.from_env(env)
 REDIS_PORT = int(getenv("REDIS_PORT", 6379))
 
 
@@ -39,20 +31,11 @@ async def get_mysql_session_router() -> AsyncGenerator[AsyncSession, None]:
         await session.close()
 
 
-@asynccontextmanager
-async def get_mysql_session() -> AsyncGenerator[AsyncSession, None]:
-    session = collection_mysql_session_factory()
-    try:
-        yield session
-    finally:
-        await session.close()
-
-
 def get_redis_pool() -> Redis:
     pool = ConnectionPool(
         host=REDIS_HOST,
         port=REDIS_PORT,
-        max_connections=REDIS_POOL_SIZE,
+        max_connections=DB_POOL_SIZE,
         decode_responses=True,
         socket_connect_timeout=REDIS_SOCKET_CONNECTION_TIMEOUT_SECOND,
         socket_timeout=REDIS_SOCKET_CONNECTION_TIMEOUT_SECOND,
