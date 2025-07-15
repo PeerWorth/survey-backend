@@ -19,11 +19,6 @@
       border: 1px solid #e5e7eb;
       border-radius: 8px;
     }
-    .logo {
-      display: block;
-      margin: 0 auto 30px auto;
-      width: 120px;
-    }
     .footer {
       text-align: center;
       font-size: 12px;
@@ -44,7 +39,12 @@
 <body>
   <div class="email-container">
     <div style="text-align: center;">
-      <img src="https://olass-public.s3.ap-northeast-2.amazonaws.com/logo.png" alt="olass logo" width="40" height="40" />
+      <a href="https://www.olass.co.kr">
+        <img
+          src="https://olass-public.s3.ap-northeast-2.amazonaws.com/email/onboarding_banner.png"
+          alt="olass 배너"
+          style="max-width: 100%; height: auto; border-radius: 6px; display: block; margin: 0 auto 30px auto;" />
+      </a>
     </div>
     {% block content %}{% endblock %}
   </div>

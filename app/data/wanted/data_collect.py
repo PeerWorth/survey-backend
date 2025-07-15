@@ -19,7 +19,7 @@ from app.module.asset.model import Job, JobGroup, SalaryStat
 from app.module.asset.repositories.job_group_repository import JobGroupRepository
 from app.module.asset.repositories.job_repository import JobRepository
 from app.module.asset.repositories.salary_stat_repository import SalaryStatRepository
-from database.dependency import get_mysql_session
+from database.dependency import get_mysql_session_router
 
 load_dotenv()
 
@@ -80,79 +80,78 @@ async def get_wanted_job_num_preset(number: int, driver: webdriver.Chrome) -> Jo
 
 async def main():
     wanted_job_rows = load_excel("./etc/wanted_job.xlsx")
+    session = get_mysql_session_router()
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--remote-debugging-port=9222")
+    chrome_options.add_argument("--disable-software-rasterizer")
+    chrome_options.add_argument("--window-size=1200,800")
 
-    async with get_mysql_session() as session:
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--disable-gpu")
-        chrome_options.add_argument("--remote-debugging-port=9222")
-        chrome_options.add_argument("--disable-software-rasterizer")
-        chrome_options.add_argument("--window-size=1200,800")
+    chrome_options.add_argument(
+        "user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"
+    )
+    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    chrome_options.add_experimental_option("useAutomationExtension", False)
 
-        chrome_options.add_argument(
-            "user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"
-        )
-        chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-        chrome_options.add_experimental_option("useAutomationExtension", False)
+    if ENVIRONMENT == EnvironmentType.LOCAL.value or ENVIRONMENT == EnvironmentType.TEST.value:
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
-        if ENVIRONMENT == EnvironmentType.LOCAL.value or ENVIRONMENT == EnvironmentType.TEST.value:
-            driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+    elif ENVIRONMENT == EnvironmentType.PROD.value:
+        # TODO: 일회성 chrome driver 설치하여 저장함. 별도 자동화 필요
+        driver = webdriver.Chrome(service=Service("/usr/local/bin/chromedriver"), options=chrome_options)
 
-        elif ENVIRONMENT == EnvironmentType.PROD.value:
-            # TODO: 일회성 chrome driver 설치하여 저장함. 별도 자동화 필요
-            driver = webdriver.Chrome(service=Service("/usr/local/bin/chromedriver"), options=chrome_options)
+    job_group_repo = JobGroupRepository(session)
+    job_repo = JobRepository(session)
+    salary_stat_repo = SalaryStatRepository(session)
 
-        job_group_repo = JobGroupRepository(session)
-        job_repo = JobRepository(session)
-        salary_stat_repo = SalaryStatRepository(session)
+    for wanted_job_row in wanted_job_rows:
+        preset_data: JobData | None = await get_wanted_job_num_preset(wanted_job_row[0], driver)
 
-        for wanted_job_row in wanted_job_rows:
-            preset_data: JobData | None = await get_wanted_job_num_preset(wanted_job_row[0], driver)
+        if not preset_data:
+            print(wanted_job_row[0])
+            continue
 
-            if not preset_data:
-                print(wanted_job_row[0])
+        job_group_name = preset_data.job_group
+        job_name = preset_data.job
+        tooltip_data_list: list[TooltipData] = preset_data.tooltip_data
+
+        print(f"{job_group_name=}, {job_name=}")
+
+        job_group: JobGroup | None = await job_group_repo.get_by_name(job_group_name)
+        if not job_group:
+            cur_job_group = JobGroup(name=job_group_name)
+            job_group = await job_group_repo.save(cur_job_group)
+            if not job_group:
                 continue
 
-            job_group_name = preset_data.job_group
-            job_name = preset_data.job
-            tooltip_data_list: list[TooltipData] = preset_data.tooltip_data
+        assert job_group.id is not None
+        job = await job_repo.find_by_group_and_name(job_group.id, job_name)
+        if not job:
+            if job_name == "전체":
+                job_name = f"{job_group_name} 전체"
 
-            print(f"{job_group_name=}, {job_name=}")
-
-            job_group: JobGroup | None = await job_group_repo.get_by_name(job_group_name)
-            if not job_group:
-                cur_job_group = JobGroup(name=job_group_name)
-                job_group = await job_group_repo.save(cur_job_group)
-                if not job_group:
-                    continue
-
-            assert job_group.id is not None
-            job = await job_repo.find_by_group_and_name(job_group.id, job_name)
+            new_job = Job(group_id=job_group.id, name=job_name)
+            job = await job_repo.save(new_job)
             if not job:
-                if job_name == "전체":
-                    job_name = f"{job_group_name} 전체"
+                continue
 
-                new_job = Job(group_id=job_group.id, name=job_name)
-                job = await job_repo.save(new_job)
-                if not job:
-                    continue
+        assert job.id  # SQLModel 특성상, 데이터 타입 존재 확인 필요
+        for tooltip_data in tooltip_data_list:
+            tooltip_data: TooltipData
 
-            assert job.id  # SQLModel 특성상, 데이터 타입 존재 확인 필요
-            for tooltip_data in tooltip_data_list:
-                tooltip_data: TooltipData
-
-                avg = int(tooltip_data.salary) * 10_000  # 천만원 단위 곱
-                salary_stat = await salary_stat_repo.get_by_job_id_experience(job.id, tooltip_data.experience)
-                if not salary_stat:
-                    salary_stat = SalaryStat(
-                        job_id=job.id,
-                        experience=tooltip_data.experience,
-                        avg=avg,
-                    )
-                    await salary_stat_repo.save(salary_stat)
+            avg = int(tooltip_data.salary) * 10_000  # 천만원 단위 곱
+            salary_stat = await salary_stat_repo.get_by_job_id_experience(job.id, tooltip_data.experience)
+            if not salary_stat:
+                salary_stat = SalaryStat(
+                    job_id=job.id,
+                    experience=tooltip_data.experience,
+                    avg=avg,
+                )
+                await salary_stat_repo.save(salary_stat)
 
     driver.quit()
 
