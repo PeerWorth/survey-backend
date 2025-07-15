@@ -1,4 +1,8 @@
 import json
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class SnsPublisher:
@@ -12,13 +16,18 @@ class SnsPublisher:
             "emails": email_batch,
         }
 
-        return self.sns.publish(
-            TopicArn=self.topic_arn,
-            Message=json.dumps(message),
-            MessageAttributes={
-                "email_type": {
-                    "DataType": "String",
-                    "StringValue": email_type,
-                }
-            },
-        )
+        try:
+            response = self.sns.publish(
+                TopicArn=self.topic_arn,
+                Message=json.dumps(message),
+                MessageAttributes={
+                    "email_type": {
+                        "DataType": "String",
+                        "StringValue": email_type,
+                    }
+                },
+            )
+            return response
+        except Exception as e:
+            logger.exception(f"SNS publish에 실패하였습니다. {e}")
+            raise
