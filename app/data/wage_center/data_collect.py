@@ -7,7 +7,7 @@ from app.data.wage_center.constant import AGE_GROUP_WAGE_PATH
 from app.module.asset.enums import AgeGroup
 from app.module.asset.model import SalaryStat
 from app.module.asset.repositories.salary_stat_repository import SalaryStatRepository
-from database.dependency import get_mysql_session
+from database.dependency import get_mysql_session_router
 
 # 링크 => https://www.wage.go.kr/whome/wage/wagesearch2.do?menuNo=102010100
 
@@ -47,8 +47,8 @@ async def save_age_group_wage(session: AsyncSession):
 
 
 async def main():
-    async with get_mysql_session() as session:
-        await save_age_group_wage(session)
+    session = get_mysql_session_router()
+    await save_age_group_wage(session)
 
 
 if __name__ == "__main__":
