@@ -2,6 +2,7 @@ import asyncio
 from os import getenv
 
 import boto3
+import email_target_handlers.onboarding_handler  # noqa: F401[명시적 _registry 등록]
 from enums import EmailType
 from registry import get_email_target_handler
 from sns_publisher import SnsPublisher
