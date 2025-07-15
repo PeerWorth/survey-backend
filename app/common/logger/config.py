@@ -47,7 +47,7 @@ def create_logger(
     logger.setLevel(level)
 
     ch = logging.StreamHandler()
-    ch.setFormatter(logging.Formatter("%(message)s"))  # TODO: git commit 메시지 할당 CICD 적용
+    ch.setFormatter(logging.Formatter("%(message)s"))
     logger.addHandler(ch)
 
     if cloudwatch_group:

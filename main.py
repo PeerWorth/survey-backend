@@ -9,6 +9,7 @@ from app.api.auth.v1.router import auth_router
 from app.common.enums import EnvironmentType
 from app.common.exception_handlers.handler_register import register_exception_handlers
 from app.common.middleware.logger import LoggingMiddleware
+from app.common.response import CustomJSONResponse
 
 load_dotenv()
 
@@ -16,7 +17,7 @@ ENVIRONMENT = getenv("ENVIRONMENT", None)
 
 
 if ENVIRONMENT == EnvironmentType.PROD.value:
-    app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+    app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None, default_response_class=CustomJSONResponse)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["https://www.olass.co.kr"],
@@ -25,7 +26,7 @@ if ENVIRONMENT == EnvironmentType.PROD.value:
         allow_headers=["*"],
     )
 else:
-    app = FastAPI()
+    app = FastAPI(default_response_class=CustomJSONResponse)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],

@@ -1,1 +1,2 @@
 MARKETING = "marketing"
+MAX_SINGLE_SEND_SIZE = 50
