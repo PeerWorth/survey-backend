@@ -8,7 +8,7 @@ class TriggerRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get_agreed_emails(self) -> list[tuple[int, str]]:
+    async def get_marketing_agreed_emails(self) -> list[tuple[int, str]]:
         stmt = (
             select(User.id, User.email)
             .join(UserConsent, User.id == UserConsent.user_id)
