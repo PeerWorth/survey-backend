@@ -27,6 +27,9 @@ class SnsPublisher:
                     }
                 },
             )
+            message_id = response.get("MessageId")
+            logger.info(f"[SNS] MessageId={message_id} 이메일 유형={email_type}, 이메일 개수={len(email_batch)}")
+
             return response
         except Exception as e:
             logger.exception(f"SNS publish에 실패하였습니다. {e}")
