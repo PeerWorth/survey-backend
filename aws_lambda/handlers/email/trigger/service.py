@@ -1,4 +1,4 @@
-from constants import MAX_SINGLE_SEND_SIZE
+from constant import MAX_SINGLE_SEND_SIZE
 from repository import TriggerRepository
 from shared.db_config import get_session
 
@@ -16,7 +16,7 @@ class EmailTargetService:
 
     async def get_target_emails(self) -> list[list[tuple[int, str]]]:
         try:
-            emails: list[tuple[int, str]] = await self.repository.get_agreed_emails()
+            emails: list[tuple[int, str]] = await self.repository.get_marketing_agreed_emails()
             return self._chunk_list(emails)
         finally:
             await self.session.close()

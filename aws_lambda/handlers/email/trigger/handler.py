@@ -3,7 +3,7 @@ from os import getenv
 
 import boto3
 from enums import EmailType
-from service import EmailTargetService
+from registry import get_email_target_handler
 from sns_publisher import SnsPublisher
 
 SNS_TOPIC_ARN = getenv("SNS_TOPIC_ARN", "arn:aws:sns:ap-northeast-2:590184068466:olass-email")
@@ -38,8 +38,8 @@ async def _lambda_handler(event: dict, context):
     except ValueError:
         raise ValueError(f"지원하지 않는 이메일 타입입니다: {email_type_raw}")
 
-    service = await EmailTargetService.create()
-    user_emails_nested = await service.get_target_emails()
+    handler = get_email_target_handler(email_type)
+    user_emails_nested = await handler()
 
     for batch in user_emails_nested:
         sns_publisher.publish_email_batch(email_type.value, batch)
