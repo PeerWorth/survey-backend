@@ -10,6 +10,7 @@ terraform {
 }
 
 provider "google" {
-  project = "your-project-id"
-  region  = "asia-northeast3"
+  project = var.project_id
+  region  = var.region
+  credentials = file("olass-service-dev-key.json")
 }

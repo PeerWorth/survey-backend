@@ -30,9 +30,13 @@ celerybeat-schedule.db
 # Edit at https://www.toptal.com/developers/gitignore?templates=flask
 
 ### Terraform ###
-*.tfvars
+*.tfstate
+*.tfstate.*
 .terraform/
+*.tfvars
 
+### GCP KEY ###
+*key.json
 
 ### Lambda ###
 **/python/

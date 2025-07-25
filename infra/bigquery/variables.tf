@@ -3,10 +3,9 @@ variable "project_id" {
   description = "GCP 프로젝트 ID"
 }
 
-variable "region" {
+variable "property_id" {
   type        = string
-  default     = "asia-northeast3"
-  description = "GCP 리전 (예: asia-northeast3)"
+  description = "GA4 property ID (예: 12345678)"
 }
 
 variable "location" {
@@ -15,7 +14,8 @@ variable "location" {
   description = "BigQuery location (리전과 일치해야 함)"
 }
 
-variable "property_id" {
+variable "region" {
   type        = string
-  description = "GA4 property ID (예: 12345678)"
+  default     = "asia-northeast3"
+  description = "GCP 리전 (예: asia-northeast3)"
 }
