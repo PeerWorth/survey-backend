@@ -15,8 +15,8 @@ class UserRepository:
         stmt = (
             select(
                 UserSalary.user_id,
-                JobGroup.name.label("job_group"),
-                Job.name.label("job"),
+                JobGroup.name.label("job_group"),  # type: ignore[attr-defined]
+                Job.name.label("job"),  # type: ignore[attr-defined]
                 UserSalary.experience,
                 UserProfile.age,
                 UserProfile.save_rate,
