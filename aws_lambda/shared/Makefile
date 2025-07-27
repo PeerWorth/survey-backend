@@ -4,8 +4,14 @@ LAYER_NAME=olass-shared-layer
 build:
 	rm -rf python
 	mkdir -p python/shared
-	cp *.py python/shared/
-	cp __init__.py python/shared/
+	rsync -av \
+	  --include='*/' \
+	  --include='*.py' \
+	  --exclude='layer.zip' \
+	  --exclude='python/' \
+	  --exclude='*' \
+	  ./ python/shared/
+
 
 zip:
 	rm -f layer.zip

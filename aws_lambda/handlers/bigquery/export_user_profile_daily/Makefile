@@ -1,6 +1,6 @@
 include ../../../.env
 
-LAMBDA_NAME=olass-trigger-email
+LAMBDA_NAME=olass-export-user-profile-daily
 ROLE_ARN=arn:aws:iam::$(AWS_ACCOUNT_ID):role/$(AWS_LAMBDA_ROLE_NAME)
 
 SHARED_LAYER_NAME=olass-shared-layer
@@ -26,11 +26,10 @@ zip:
 	rm -f $(HANDLER_ZIP)
 	zip -r $(HANDLER_ZIP) .
 
-
 create: zip
 	aws lambda create-function \
 		--function-name $(LAMBDA_NAME) \
-		--runtime python3.11 \
+		--runtime $(PYTHON) \
 		--role $(ROLE_ARN) \
 		--handler handler.lambda_handler \
 		--zip-file fileb://$(HANDLER_ZIP) \
