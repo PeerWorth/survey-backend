@@ -1,8 +1,7 @@
 from constant import MARKETING
+from shared.model.auth_model import User, UserConsent
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from aws_lambda.shared.model.auth_model import User, UserConsent
 
 
 class TriggerRepository:
