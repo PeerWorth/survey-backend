@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from shared.model.asset_model import Job, JobGroup, UserProfile, UserSalary
 from shared.util.time import current_time_kst
 from sqlalchemy import func, or_, select
@@ -9,7 +11,7 @@ class UserRepository:
         self.session = session
 
     async def get_user_profiles(self) -> list[dict]:
-        today = current_time_kst().date()
+        yesterday = current_time_kst().date() - timedelta(days=1)
 
         stmt = (
             select(
@@ -27,9 +29,9 @@ class UserRepository:
             .join(JobGroup, JobGroup.id == Job.group_id)
             .where(
                 or_(
-                    func.date(UserProfile.created_at) == today,
-                    func.date(UserProfile.updated_at) == today,
-                    func.date(UserProfile.deleted_at) == today,
+                    func.date(UserProfile.created_at) == yesterday,
+                    func.date(UserProfile.updated_at) == yesterday,
+                    func.date(UserProfile.deleted_at) == yesterday,
                 )
             )
         )
@@ -37,7 +39,7 @@ class UserRepository:
         result = await self.session.execute(stmt)
         return [
             {
-                "event_date": today.isoformat(),
+                "event_date": yesterday.isoformat(),
                 "user_id": row.user_id,
                 "job_group": row.job_group,
                 "job": row.job,
