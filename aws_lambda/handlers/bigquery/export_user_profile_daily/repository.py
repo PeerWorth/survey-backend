@@ -1,6 +1,5 @@
-from datetime import date
-
-from shared.asset_model import Job, JobGroup, UserProfile, UserSalary
+from shared.model.asset_model import Job, JobGroup, UserProfile, UserSalary
+from shared.util.time import current_time_kst
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,7 +9,7 @@ class UserRepository:
         self.session = session
 
     async def get_user_profiles(self) -> list[dict]:
-        today = date.today()
+        today = current_time_kst().date()
 
         stmt = (
             select(
