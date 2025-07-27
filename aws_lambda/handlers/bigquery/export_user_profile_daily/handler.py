@@ -25,13 +25,12 @@ async def _lambda_handler(event: dict, context):
     service = await UserService.create()
     user_profiles: list[dict] = await service.get_user_profiles()
 
-    logger.info(f"총 {len(user_profiles)}개의 행이 BigQuery로 전송합니다.")
-
     if not user_profiles:
-        logger.info("전송할 데이터가 없습니다.")
+        logger.info("전송할 유저 정보 데이터가 없습니다.")
         return
 
     try:
-        await service.insert_to_bigquery(user_profiles)
+        service.insert_to_bigquery(user_profiles)
+        logger.info(f"총 {len(user_profiles)}개의 행이 BigQuery로 전송합니다.")
     except Exception as e:
         logger.exception("BigQuery 전송 중 오류 발생", exc_info=e)
