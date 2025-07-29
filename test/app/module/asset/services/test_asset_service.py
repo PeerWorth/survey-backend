@@ -1,61 +1,16 @@
 import uuid
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from app.api.asset.v1.constant import EXPIRE_JOB_REDIS_SEC, JOB_REDIS_KEY, SALARY_THOUSAND_WON
 from app.api.asset.v1.schemas.asset_schema import UserProfilePostRequest, UserSalaryPostRequest
-from app.common.redis_repository.general_redis_repository import ListRedisRepository
 from app.module.asset.enums import CarRank
 from app.module.asset.errors.asset_error import NoMatchJobSalary, NoMatchUserSalary
 from app.module.asset.model import Job, SalaryStat, UserProfile, UserSalary
-from app.module.asset.repositories.job_repository import JobRepository
-from app.module.asset.repositories.salary_stat_repository import SalaryStatRepository
-from app.module.asset.repositories.user_profile_repository import UserProfileRepository
-from app.module.asset.repositories.user_salary_repository import UserSalaryRepository
-from app.module.asset.services.asset_service import AssetService
 
-
-@pytest.fixture
-def mock_user_salary_repo():
-    return AsyncMock(spec=UserSalaryRepository)
-
-
-@pytest.fixture
-def mock_user_profile_repo():
-    return AsyncMock(spec=UserProfileRepository)
-
-
-@pytest.fixture
-def mock_salary_stat_repo():
-    return AsyncMock(spec=SalaryStatRepository)
-
-
-@pytest.fixture
-def mock_job_repo():
-    return AsyncMock(spec=JobRepository)
-
-
-@pytest.fixture
-def mock_job_cache_repo():
-    return AsyncMock(spec=ListRedisRepository)
-
-
-@pytest.fixture
-def asset_service(
-    mock_user_salary_repo,
-    mock_user_profile_repo,
-    mock_salary_stat_repo,
-    mock_job_repo,
-    mock_job_cache_repo,
-):
-    return AssetService(
-        user_salary_repo=mock_user_salary_repo,
-        user_profile_repo=mock_user_profile_repo,
-        salary_stat_repo=mock_salary_stat_repo,
-        job_repo=mock_job_repo,
-        job_cache_repo=mock_job_cache_repo,
-    )
+# Fixtures imported via pytest plugin system
+pytest_plugins = ["test.fixtures.asset_mock_fixture"]
 
 
 class TestGetJobs:
