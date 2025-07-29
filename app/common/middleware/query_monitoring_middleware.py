@@ -3,7 +3,7 @@
 import time
 from typing import Callable
 
-from fastapi import FastAPI, Request, Response
+from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
@@ -74,8 +74,3 @@ class QueryMonitoringMiddleware(BaseHTTPMiddleware):
                 logger.warning(f"Slow Query: {query['execution_time']:.3f}s - {query['sql'][:100]}...")
 
         return response
-
-
-def setup_query_monitoring(app: FastAPI, enable_detailed_logging: bool = False):
-    """쿼리 모니터링 설정"""
-    app.add_middleware(QueryMonitoringMiddleware, enable_detailed_logging=enable_detailed_logging)

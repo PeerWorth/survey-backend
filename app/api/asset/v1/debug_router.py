@@ -9,7 +9,7 @@ from app.common.monitoring.query_monitor import query_analysis_context, query_mo
 from app.module.asset.services.asset_service import AssetService
 from database.dependency import get_mysql_session_router
 
-debug_router = APIRouter(prefix="/debug", tags=["Debug"])
+debug_router = APIRouter(prefix="/debug", tags=["debug"])
 
 
 @debug_router.get("/query-stats", summary="쿼리 실행 통계")
