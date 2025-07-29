@@ -29,6 +29,14 @@ celerybeat-schedule.db
 # Created by https://www.toptal.com/developers/gitignore/api/flask
 # Edit at https://www.toptal.com/developers/gitignore?templates=flask
 
+### Terraform ###
+*.tfstate
+*.tfstate.*
+.terraform/
+*.tfvars
+
+### GCP KEY ###
+*key.json
 
 ### Lambda ###
 **/python/
