@@ -89,6 +89,9 @@ class AssetService:
         uid: uuid.UUID = data.pop("unique_id")
 
         data["salary_id"] = uid.bytes
+        # is_monthly_rent를 monthly_rent로 변환
+        if "is_monthly_rent" in data:
+            data["monthly_rent"] = data.pop("is_monthly_rent")
 
         user_profile = UserProfile(**data)
         saved = await self.user_profile_repo.save(user_profile)
