@@ -1,0 +1,96 @@
+resource "aws_security_group" "redis_sg" {
+  name_prefix = "${var.project_name}-${var.environment}-redis-"
+  vpc_id      = data.aws_vpc.olass.id
+
+  ingress {
+    from_port       = var.redis_port
+    to_port         = var.redis_port
+    protocol        = "tcp"
+    security_groups = [aws_security_group.eb_sg.id]
+    description     = "Redis access from Elastic Beanstalk"
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-redis-sg"
+  }
+}
+
+# ElastiCache Subnet Group
+# ElastiCache는 Private 서브넷에만 배치 (보안)
+resource "aws_elasticache_subnet_group" "redis" {
+  name       = "${var.project_name}-${var.environment}-redis-subnet-group"
+  subnet_ids = data.aws_subnets.private.ids
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-redis-subnet-group"
+  }
+}
+
+# ElastiCache Parameter Group
+resource "aws_elasticache_parameter_group" "redis" {
+  family = "redis7.x"
+  name   = "${var.project_name}-${var.environment}-redis-params"
+
+  parameter {
+    name  = "maxmemory-policy"
+    value = "allkeys-lru"
+  }
+
+  parameter {
+    name  = "timeout"
+    value = "300"
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-redis-params"
+  }
+}
+
+# ElastiCache Redis Cluster
+resource "aws_elasticache_cluster" "redis" {
+  cluster_id           = var.redis_cluster_id
+  engine               = "redis"
+  engine_version       = "7.0"
+  node_type            = var.redis_node_type
+  num_cache_nodes      = 1
+  parameter_group_name = aws_elasticache_parameter_group.redis.name
+  port                 = var.redis_port
+
+  # Network settings
+  subnet_group_name  = aws_elasticache_subnet_group.redis.name
+  security_group_ids = [aws_security_group.redis_sg.id]
+
+  # Maintenance and backup
+  maintenance_window       = "sun:05:00-sun:06:00"
+  snapshot_retention_limit = var.environment == "prod" ? 5 : 0
+  snapshot_window         = var.environment == "prod" ? "06:00-07:00" : null
+
+  # Logging (CloudWatch)
+  log_delivery_configuration {
+    destination      = aws_cloudwatch_log_group.redis_slow.name
+    destination_type = "cloudwatch-logs"
+    log_format       = "text"
+    log_type         = "slow-log"
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-redis"
+  }
+}
+
+# CloudWatch Log Group for Redis slow logs
+resource "aws_cloudwatch_log_group" "redis_slow" {
+  name              = "/aws/elasticache/redis/${var.project_name}-${var.environment}"
+  retention_in_days = var.environment == "prod" ? 30 : 7
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-redis-logs"
+  }
+}
