@@ -2,10 +2,10 @@ import pytest
 from fastapi import status
 
 
-@pytest.mark.asyncio
 class TestHTTPClientFixture:
     """HTTP client fixture 테스트"""
 
+    @pytest.mark.asyncio
     async def test_client_makes_http_requests(self, client, session):
         """
         Given: 테스트 HTTP 클라이언트가 주어졌을 때
@@ -21,6 +21,7 @@ class TestHTTPClientFixture:
         assert response.status_code in [status.HTTP_200_OK, status.HTTP_404_NOT_FOUND]
         # 실제 /health 엔드포인트가 있다면 200, 없다면 404
 
+    @pytest.mark.asyncio
     async def test_client_uses_test_database(self, client, session):
         """
         Given: 테스트 클라이언트와 세션이 주어졌을 때
@@ -37,6 +38,7 @@ class TestHTTPClientFixture:
         assert session is not None
         assert session.is_active
 
+    @pytest.mark.asyncio
     async def test_client_handles_json_data(self, client, session):
         """
         Given: JSON 데이터를 포함한 요청을 보낼 때
@@ -55,6 +57,7 @@ class TestHTTPClientFixture:
         assert hasattr(client, "put")
         assert hasattr(client, "delete")
 
+    @pytest.mark.asyncio
     async def test_client_preserves_headers(self, client, session):
         """
         Given: 커스텀 헤더가 필요한 요청을 보낼 때
@@ -71,6 +74,7 @@ class TestHTTPClientFixture:
         assert response.status_code in [status.HTTP_200_OK, status.HTTP_404_NOT_FOUND]
         # 헤더가 제대로 전달되었는지는 실제 엔드포인트에서 확인
 
+    @pytest.mark.asyncio
     async def test_client_handles_different_content_types(self, client, session):
         """
         Given: 다양한 content-type의 요청을 보낼 때
@@ -86,6 +90,7 @@ class TestHTTPClientFixture:
         # Form 데이터가 올바르게 처리되었는지 확인
         assert client is not None
 
+    @pytest.mark.asyncio
     async def test_client_base_url_configuration(self, client, session):
         """
         Given: 테스트 클라이언트가 생성될 때
@@ -102,6 +107,7 @@ class TestHTTPClientFixture:
         # httpx.AsyncClient의 base_url 속성 확인
         assert hasattr(client, "_base_url")
 
+    @pytest.mark.asyncio
     async def test_client_async_context_manager(self, client, session):
         """
         Given: 비동기 컨텍스트 매니저로 클라이언트를 사용할 때

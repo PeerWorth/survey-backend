@@ -6,10 +6,10 @@ from database.dependency import get_mysql_session_router
 from main import app
 
 
-@pytest.mark.asyncio
 class TestEventLoopFixture:
     """Event loop fixture 테스트"""
 
+    @pytest.mark.asyncio
     async def test_event_loop_is_running(self):
         """
         Given: pytest-asyncio가 설정되어 있을 때
@@ -25,6 +25,7 @@ class TestEventLoopFixture:
         assert loop is not None
         assert loop.is_running()
 
+    @pytest.mark.asyncio
     async def test_event_loop_handles_concurrent_tasks(self):
         """
         Given: 여러 비동기 작업이 있을 때
@@ -44,6 +45,7 @@ class TestEventLoopFixture:
         # Then
         assert results == [0, 2, 4, 6, 8]
 
+    @pytest.mark.asyncio
     async def test_event_loop_scope_is_session(self):
         """
         Given: event_loop fixture가 session 스코프로 설정되어 있을 때
@@ -62,10 +64,10 @@ class TestEventLoopFixture:
         # 다른 테스트에서도 같은 loop_id를 가져야 함
 
 
-@pytest.mark.asyncio
 class TestDependencyOverrides:
     """의존성 오버라이드 테스트"""
 
+    @pytest.mark.asyncio
     async def test_mysql_session_override_is_applied(self):
         """
         Given: get_mysql_session_router가 오버라이드되어 있을 때
@@ -81,6 +83,7 @@ class TestDependencyOverrides:
         assert get_mysql_session_router in overrides
         assert overrides[get_mysql_session_router] is not None
 
+    @pytest.mark.asyncio
     async def test_redis_override_function_works(self, redis_client):
         """
         Given: Redis 오버라이드 함수가 제공될 때
@@ -98,6 +101,7 @@ class TestDependencyOverrides:
         assert test_redis is redis_client
         assert test_redis is not None
 
+    @pytest.mark.asyncio
     async def test_dependency_override_isolation(self):
         """
         Given: 의존성 오버라이드가 설정되어 있을 때
@@ -121,10 +125,10 @@ class TestDependencyOverrides:
         del app.dependency_overrides[dummy_dependency]
 
 
-@pytest.mark.asyncio
 class TestFixtureIntegration:
     """여러 fixture 통합 테스트"""
 
+    @pytest.mark.asyncio
     async def test_session_and_client_work_together(self, session, client):
         """
         Given: 세션과 HTTP 클라이언트 fixture가 함께 주어졌을 때
@@ -144,6 +148,7 @@ class TestFixtureIntegration:
         # Then
         # 두 fixture가 독립적으로 작동함
 
+    @pytest.mark.asyncio
     async def test_redis_and_database_fixtures_coexist(self, session, redis_client):
         """
         Given: Redis와 데이터베이스 fixture가 함께 주어졌을 때
@@ -162,6 +167,7 @@ class TestFixtureIntegration:
         assert session.is_active
         # 두 스토리지가 독립적으로 작동
 
+    @pytest.mark.asyncio
     async def test_all_fixtures_together(self, session, client, redis_client):
         """
         Given: 모든 주요 fixture가 함께 주어졌을 때

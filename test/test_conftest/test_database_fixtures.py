@@ -2,7 +2,6 @@ import pytest
 from sqlmodel import Field, SQLModel, select
 
 
-# 테스트용 모델 - pytest가 Test로 시작하는 클래스를 수집하지 않도록 이름 변경
 class SampleUser(SQLModel, table=True):
     __tablename__ = "sample_users"
 
@@ -11,10 +10,10 @@ class SampleUser(SQLModel, table=True):
     email: str
 
 
-@pytest.mark.asyncio
 class TestDatabaseFixture:
     """Database session fixture 테스트"""
 
+    @pytest.mark.asyncio
     async def test_session_creates_and_drops_tables(self, session):
         """
         Given: 테스트 세션이 주어졌을 때
@@ -31,6 +30,7 @@ class TestDatabaseFixture:
         assert result.scalar() == 1
         assert session.is_active
 
+    @pytest.mark.asyncio
     async def test_session_rollback_on_test_completion(self, session):
         """
         Given: 테스트 세션에서 데이터를 생성했을 때
@@ -44,7 +44,6 @@ class TestDatabaseFixture:
         session.add(test_user)
         await session.commit()
 
-        # 데이터가 실제로 저장되었는지 확인
         result = await session.execute(select(SampleUser).where(SampleUser.email == "test@example.com"))
         saved_user = result.scalar_one_or_none()
 
@@ -53,6 +52,7 @@ class TestDatabaseFixture:
         assert saved_user.name == "test"
         # 이 데이터는 테스트 종료 후 자동으로 롤백됨
 
+    @pytest.mark.asyncio
     async def test_session_isolation_between_tests(self, session):
         """
         Given: 다른 테스트에서 생성된 데이터가 있을 수 있을 때
@@ -68,6 +68,7 @@ class TestDatabaseFixture:
         # Then
         assert len(users) == 0  # 격리된 환경이므로 비어있음
 
+    @pytest.mark.asyncio
     async def test_session_async_operations(self, session):
         """
         Given: 비동기 세션이 주어졌을 때
@@ -89,6 +90,7 @@ class TestDatabaseFixture:
         assert len(saved_users) == 5
         assert all(user.name.startswith("user") for user in saved_users)
 
+    @pytest.mark.asyncio
     async def test_session_handles_constraints(self, session):
         """
         Given: 데이터베이스 제약조건이 있을 때
