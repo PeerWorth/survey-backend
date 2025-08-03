@@ -15,9 +15,13 @@ GitHub 저장소의 Settings > Secrets and variables > Actions에서 다음 시�
   - 필요 권한: `repo` (전체)
 
 ### 3. Elastic Beanstalk 설정 (필수)
-- `DEV_EB_APPLICATION_NAME`: 개발 환경 EB 애플리케이션 이름
-- `DEV_EB_ENV_NAME`: 개발 환경 EB 환경 이름
-- `DEV_EB_BUCKET`: 개발 환경 EB 배포용 S3 버킷 이름
+- `DEV_EB_APPLICATION_NAME`: 개발 환경 EB 애플리케이션 이름 (예: olass-dev-app)
+- `DEV_EB_ENV_NAME`: 개발 환경 EB 환경 이름 (예: olass-dev-env)
+- `DEV_EB_BUCKET`: 개발 환경 EB 배포용 S3 버킷 이름 (예: olass-dev-eb-deployments)
+- `DEV_EB_SERVICE_ROLE`: EB 서비스 역할 ARN (Terraform output에서 확인)
+- `DEV_EB_INSTANCE_PROFILE`: EC2 인스턴스 프로파일 이름 (Terraform output에서 확인)
+- `DEV_VPC_ID`: VPC ID (예: vpc-0fb2755d19a3e0359)
+- `DEV_SUBNET_IDS`: 서브넷 ID들 (쉼표로 구분, Terraform output에서 확인)
 - `EB_APPLICATION_NAME`: 프로덕션 환경 EB 애플리케이션 이름 (main 브랜치용)
 - `EB_ENV_NAME`: 프로덕션 환경 EB 환경 이름 (main 브랜치용)
 - `EB_BUCKET`: 프로덕션 환경 EB 배포용 S3 버킷 이름 (main 브랜치용)
