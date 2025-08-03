@@ -5,19 +5,20 @@ output "eb_application_name" {
 }
 
 output "eb_environment_name" {
-  description = "Elastic Beanstalk 환경 이름"
-  value       = aws_elastic_beanstalk_environment.env.name
+  description = "Elastic Beanstalk 환경 이름 (수동 생성 필요)"
+  value       = var.eb_environment_name
 }
 
-output "eb_environment_url" {
-  description = "Elastic Beanstalk 환경 URL"
-  value       = aws_elastic_beanstalk_environment.env.endpoint_url
-}
+# 환경이 수동 생성되므로 URL과 CNAME은 AWS Console에서 확인
+# output "eb_environment_url" {
+#   description = "Elastic Beanstalk 환경 URL"
+#   value       = aws_elastic_beanstalk_environment.env.endpoint_url
+# }
 
-output "eb_cname" {
-  description = "Elastic Beanstalk CNAME"
-  value       = aws_elastic_beanstalk_environment.env.cname
-}
+# output "eb_cname" {
+#   description = "Elastic Beanstalk CNAME"
+#   value       = aws_elastic_beanstalk_environment.env.cname
+# }
 
 # RDS 출력
 output "rds_endpoint" {
