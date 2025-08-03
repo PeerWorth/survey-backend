@@ -59,6 +59,28 @@ resource "aws_iam_role_policy" "eb_s3_access" {
   })
 }
 
+# CloudWatch Logs 권한
+resource "aws_iam_role_policy" "eb_cloudwatch_logs" {
+  name = "${var.project_name}-${var.environment}-eb-cloudwatch-logs"
+  role = aws_iam_role.eb_ec2_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams"
+        ]
+        Resource = "arn:aws:logs:*:*:*"
+      }
+    ]
+  })
+}
+
 # IAM Instance Profile
 resource "aws_iam_instance_profile" "eb_ec2_profile" {
   name = "${var.project_name}-${var.environment}-eb-ec2-profile"
@@ -110,6 +132,15 @@ resource "aws_security_group" "eb_sg" {
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = var.allowed_cidr_blocks
+  }
+
+  # Docker 컨테이너 포트 (내부 통신용)
+  ingress {
+    from_port   = 8000
+    to_port     = 8000
+    protocol    = "tcp"
+    self        = true
+    description = "Allow internal traffic on container port"
   }
 
   egress {
@@ -189,6 +220,13 @@ resource "aws_elastic_beanstalk_environment" "env" {
     value     = aws_security_group.eb_sg.id
   }
 
+  # IMDSv2 설정 (보안 강화)
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "DisableIMDSv1"
+    value     = "true"
+  }
+
   setting {
     namespace = "aws:autoscaling:asg"
     name      = "MinSize"
@@ -219,11 +257,36 @@ resource "aws_elastic_beanstalk_environment" "env" {
     value     = "enhanced"
   }
 
+  setting {
+    namespace = "aws:elasticbeanstalk:cloudwatch:logs"
+    name      = "StreamLogs"
+    value     = "true"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:cloudwatch:logs"
+    name      = "DeleteOnTerminate"
+    value     = "false"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:cloudwatch:logs"
+    name      = "RetentionInDays"
+    value     = var.environment == "prod" ? "30" : "7"
+  }
+
   # Docker 컨테이너 포트 설정 (8000 포트)
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "PORT"
     value     = "8000"
+  }
+
+  # Application Load Balancer 리스너 설정
+  setting {
+    namespace = "aws:elbv2:listener:80"
+    name      = "Protocol"
+    value     = "HTTP"
   }
 
   # ALB Health Check 설정
@@ -244,6 +307,44 @@ resource "aws_elastic_beanstalk_environment" "env" {
     name      = "HealthCheckPath"
     value     = "/health"
   }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:environment:process:default"
+    name      = "HealthCheckInterval"
+    value     = "30"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:environment:process:default"
+    name      = "HealthCheckTimeout"
+    value     = "10"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:environment:process:default"
+    name      = "HealthyThresholdCount"
+    value     = "3"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:environment:process:default"
+    name      = "UnhealthyThresholdCount"
+    value     = "5"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:environment:process:default"
+    name      = "MatcherHTTPCode"
+    value     = "200"
+  }
+
+  # EC2 인스턴스 헬스체크 설정 (Docker 컨테이너 포트)
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "DOCKER_HEALTHCHECK_URL"
+    value     = "http://localhost:8000/health"
+  }
+
 
   # 환경 변수들 (데이터베이스 연결 정보)
   setting {

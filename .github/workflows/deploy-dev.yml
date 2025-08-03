@@ -1,0 +1,139 @@
+name: Deploy to Dev Environment
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    env:
+      GH_PAT: ${{ secrets.GH_PAT }}
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Bump version from latest tag (supports #major #minor)
+      id: versioning
+      env:
+        GH_PAT: ${{ secrets.GH_PAT }}
+      run: |
+        # 먼저 인증된 remote로 덮어쓰기
+        git config --global user.name "github-actions"
+        git config --global user.email "github-actions@github.com"
+
+        git config --unset-all http.https://github.com/.extraheader || true
+
+        git remote set-url origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}.git
+
+        # 이후 fetch는 PAT 인증 기반으로 수행됨
+        git fetch --tags
+
+        # 최신 태그 추출 (dev 태그 필터링)
+        LATEST_TAG=$(git tag -l "dev-v*" --sort=-version:refname | head -n 1 || echo "dev-v0.0.0")
+        VERSION=${LATEST_TAG#dev-v}
+        IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+
+        # PR 제목에서 버전 증가 타입 확인
+        PR_TITLE="${{ github.event.pull_request.title }}"
+        echo "🔍 PR title: $PR_TITLE"
+
+        # 증가 타입 판별
+        if [[ "$PR_TITLE" == *"#major"* ]]; then
+          MAJOR=$((MAJOR + 1))
+          MINOR=0
+          PATCH=0
+          INCREMENT_TYPE="major"
+        elif [[ "$PR_TITLE" == *"#minor"* ]]; then
+          MINOR=$((MINOR + 1))
+          PATCH=0
+          INCREMENT_TYPE="minor"
+        else
+          PATCH=$((PATCH + 1))
+          INCREMENT_TYPE="patch"
+        fi
+
+        NEW_VERSION="dev-v$MAJOR.$MINOR.$PATCH"
+        echo "🎯 Bumping $INCREMENT_TYPE version: $LATEST_TAG → $NEW_VERSION"
+
+        echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+        echo "new_tag=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+        # 태그 생성 및 푸시
+        git tag $NEW_VERSION
+        git push origin $NEW_VERSION
+
+    - name: Save .env
+      run: echo "${{ secrets.DEV_ENV_CONTENTS }}" > .env
+
+    - name: Change files for dev environment
+      run: cp docker-compose.dev.yml docker-compose.yml
+
+    - name: Zip Application
+      run: zip -r app.zip . -x ".git/*" ".github/*"
+
+    - name: Upload to S3
+      run: |
+        aws s3 cp app.zip s3://${{ secrets.DEV_EB_BUCKET }}/app-${{ env.NEW_VERSION }}.zip
+
+    - name: Create new Elastic Beanstalk Application Version
+      run: |
+        aws elasticbeanstalk create-application-version \
+          --application-name ${{ secrets.DEV_EB_APPLICATION_NAME }} \
+          --version-label ${{ env.NEW_VERSION }} \
+          --source-bundle S3Bucket=${{ secrets.DEV_EB_BUCKET }},S3Key=app-${{ env.NEW_VERSION }}.zip
+
+    - name: Wait for EB environment to be Ready
+      run: |
+        echo "⏳ Waiting for environment to become Ready..."
+        while [ "$(aws elasticbeanstalk describe-environments \
+                        --environment-names ${{ secrets.DEV_EB_ENV_NAME }} \
+                        --query "Environments[0].Status" \
+                        --output text)" != "Ready" ]; do
+          echo "   Current status: $(aws elasticbeanstalk describe-environments \
+                                  --environment-names ${{ secrets.DEV_EB_ENV_NAME }} \
+                                  --query "Environments[0].Status" \
+                                  --output text). Sleeping 15s..."
+          sleep 15
+        done
+
+    - name: Deploy to Elastic Beanstalk
+      run: |
+        aws elasticbeanstalk update-environment \
+          --environment-name ${{ secrets.DEV_EB_ENV_NAME }} \
+          --version-label ${{ env.NEW_VERSION }}
+
+    - name: Post deployment comment
+      if: always()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { owner, repo } = context.repo;
+          const run_id = context.runId;
+          const run_url = `https://github.com/${owner}/${repo}/actions/runs/${run_id}`;
+
+          const status = '${{ job.status }}';
+          const emoji = status === 'success' ? '✅' : '❌';
+          const message = status === 'success'
+            ? `Dev deployment completed successfully! Version: ${{ env.NEW_VERSION }}`
+            : 'Dev deployment failed!';
+
+          await github.rest.issues.createComment({
+            owner,
+            repo,
+            issue_number: context.issue.number,
+            body: `${emoji} ${message}\n\n[View deployment logs](${run_url})`
+          });
