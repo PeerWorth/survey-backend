@@ -145,15 +145,14 @@ jobs:
           --environment-name ${{ secrets.DEV_EB_ENV_NAME }} \
           --solution-stack-name "$SOLUTION_STACK" \
           --version-label ${{ env.NEW_VERSION }} \
-          --option-settings \
-            Namespace=aws:elasticbeanstalk:environment,OptionName=ServiceRole,Value=${{ secrets.DEV_EB_SERVICE_ROLE }} \
-            Namespace=aws:autoscaling:launchconfiguration,OptionName=IamInstanceProfile,Value=${{ secrets.DEV_EB_INSTANCE_PROFILE }} \
-            Namespace=aws:elasticbeanstalk:environment,OptionName=LoadBalancerType,Value=application \
-            Namespace=aws:elasticbeanstalk:environment:process:default,OptionName=Port,Value=8000 \
-            Namespace=aws:elasticbeanstalk:environment:process:default,OptionName=Protocol,Value=HTTP \
-            Namespace=aws:elasticbeanstalk:environment:process:default,OptionName=HealthCheckPath,Value=/health \
-            Namespace=aws:ec2:vpc,OptionName=VPCId,Value=${{ secrets.DEV_VPC_ID }} \
-            Namespace=aws:ec2:vpc,OptionName=Subnets,Value=${{ secrets.DEV_SUBNET_IDS }}
+          --option-settings "Namespace=aws:elasticbeanstalk:environment,OptionName=ServiceRole,Value=${{ secrets.DEV_EB_SERVICE_ROLE }}" \
+            "Namespace=aws:autoscaling:launchconfiguration,OptionName=IamInstanceProfile,Value=${{ secrets.DEV_EB_INSTANCE_PROFILE }}" \
+            "Namespace=aws:elasticbeanstalk:environment,OptionName=LoadBalancerType,Value=application" \
+            "Namespace=aws:elasticbeanstalk:environment:process:default,OptionName=Port,Value=8000" \
+            "Namespace=aws:elasticbeanstalk:environment:process:default,OptionName=Protocol,Value=HTTP" \
+            "Namespace=aws:elasticbeanstalk:environment:process:default,OptionName=HealthCheckPath,Value=/health" \
+            "Namespace=aws:ec2:vpc,OptionName=VPCId,Value=${{ secrets.DEV_VPC_ID }}" \
+            "Namespace=aws:ec2:vpc,OptionName=Subnets,Value=${{ secrets.DEV_SUBNET_IDS }}"
 
         # 환경 생성 완료 대기
         echo "Waiting for environment creation..."
