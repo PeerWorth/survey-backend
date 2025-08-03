@@ -1,3 +1,8 @@
 [flake8]
 ignore = E203, E501, W503, E231, E266
 max-line-length = 120
+per-file-ignores =
+    # F811: redefinition of unused name from line N (pytest fixtures)
+    test/**/test_*.py:F811
+    # F401: imported but unused (fixture imports)
+    test/**/test_*.py:F401

@@ -33,6 +33,7 @@ readme = "README.md"
 
 [tool.poetry.group.dev.dependencies]
 mypy-boto3-sns = "^1.39.0"
+pytest-asyncio = "^1.1.0"
 
 [virtualenvs]
 in-project = true
