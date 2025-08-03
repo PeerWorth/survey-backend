@@ -51,9 +51,14 @@ output: ## 배포된 리소스 정보 출력
 eb-status: ## Elastic Beanstalk 환경 상태 확인
 	@EB_ENV=$$(terraform output -raw eb_environment_name 2>/dev/null) && \
 	if [ -n "$$EB_ENV" ]; then \
-		aws elasticbeanstalk describe-environment-health --environment-name $$EB_ENV --attribute-names All; \
+		ENV_STATUS=$$(aws elasticbeanstalk describe-environments --environment-names $$EB_ENV --query "Environments[0].Status" --output text 2>/dev/null || echo "NOT_FOUND") && \
+		if [ "$$ENV_STATUS" != "NOT_FOUND" ] && [ "$$ENV_STATUS" != "None" ]; then \
+			aws elasticbeanstalk describe-environment-health --environment-name $$EB_ENV --attribute-names All; \
+		else \
+			echo "Elastic Beanstalk 환경이 아직 생성되지 않았습니다. GitHub Actions를 통해 첫 배포를 진행하세요."; \
+		fi \
 	else \
-		echo "Elastic Beanstalk 환경이 배포되지 않았습니다."; \
+		echo "Elastic Beanstalk 환경 이름이 설정되지 않았습니다."; \
 	fi
 
 rds-status: ## RDS 상태 확인
