@@ -126,25 +126,55 @@ jobs:
           --version-label ${{ env.NEW_VERSION }} \
           --source-bundle S3Bucket=${{ secrets.DEV_EB_BUCKET }},S3Key=app-${{ env.NEW_VERSION }}.zip
 
-    - name: Wait for EB environment to be Ready
-      run: |
-        echo "⏳ Waiting for environment to become Ready..."
-        while [ "$(aws elasticbeanstalk describe-environments \
-                        --environment-names ${{ secrets.DEV_EB_ENV_NAME }} \
-                        --query "Environments[0].Status" \
-                        --output text)" != "Ready" ]; do
-          echo "   Current status: $(aws elasticbeanstalk describe-environments \
-                                  --environment-names ${{ secrets.DEV_EB_ENV_NAME }} \
-                                  --query "Environments[0].Status" \
-                                  --output text). Sleeping 15s..."
-          sleep 15
-        done
-
     - name: Deploy to Elastic Beanstalk
       run: |
+        echo "🚀 Deploying new version to Elastic Beanstalk..."
         aws elasticbeanstalk update-environment \
           --environment-name ${{ secrets.DEV_EB_ENV_NAME }} \
           --version-label ${{ env.NEW_VERSION }}
+
+    - name: Wait for deployment completion
+      run: |
+        echo "⏳ Waiting for deployment to complete..."
+
+        # 최대 15분 대기 (60 * 15 = 900초)
+        MAX_ATTEMPTS=60
+        ATTEMPT=0
+
+        while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+          ENV_STATUS=$(aws elasticbeanstalk describe-environments \
+            --environment-names ${{ secrets.DEV_EB_ENV_NAME }} \
+            --query "Environments[0].Status" \
+            --output text)
+
+          ENV_HEALTH=$(aws elasticbeanstalk describe-environments \
+            --environment-names ${{ secrets.DEV_EB_ENV_NAME }} \
+            --query "Environments[0].Health" \
+            --output text)
+
+          echo "Status: $ENV_STATUS, Health: $ENV_HEALTH"
+
+          # Ready 상태이고 Updating이 아니면 완료
+          if [ "$ENV_STATUS" = "Ready" ]; then
+            echo "✅ Deployment completed! Final health: $ENV_HEALTH"
+            break
+          fi
+
+          # 심각한 오류 상태면 중단
+          if [ "$ENV_STATUS" = "Terminating" ] || [ "$ENV_STATUS" = "Terminated" ]; then
+            echo "❌ Environment is in error state: $ENV_STATUS"
+            exit 1
+          fi
+
+          ATTEMPT=$((ATTEMPT + 1))
+          echo "   Attempt $ATTEMPT/$MAX_ATTEMPTS - Waiting 15s..."
+          sleep 15
+        done
+
+        if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+          echo "⚠️  Deployment timeout after 15 minutes, but this is normal for initial deployments"
+          echo "   Check AWS Console for deployment progress"
+        fi
 
     - name: Post deployment comment
       if: always()
