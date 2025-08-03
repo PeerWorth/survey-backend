@@ -43,9 +43,23 @@ jobs:
         git fetch --tags
 
         # 최신 태그 추출 (dev 태그 필터링)
-        LATEST_TAG=$(git tag -l "dev-v*" --sort=-version:refname | head -n 1 || echo "dev-v0.0.0")
+        LATEST_TAG=$(git tag -l "dev-v*" --sort=-version:refname | head -n 1)
+
+        # 태그가 없으면 초기값 설정
+        if [ -z "$LATEST_TAG" ]; then
+          echo "No existing dev tags found. Starting from dev-v0.0.0"
+          LATEST_TAG="dev-v0.0.0"
+        fi
+
         VERSION=${LATEST_TAG#dev-v}
         IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+
+        # 버전 구성요소가 비어있으면 0으로 설정
+        MAJOR=${MAJOR:-0}
+        MINOR=${MINOR:-0}
+        PATCH=${PATCH:-0}
+
+        echo "📌 Current version: v$MAJOR.$MINOR.$PATCH"
 
         # PR 제목에서 버전 증가 타입 확인
         PR_TITLE="${{ github.event.pull_request.title }}"
