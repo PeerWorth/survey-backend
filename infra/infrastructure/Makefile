@@ -64,12 +64,12 @@ rds-status: ## RDS 상태 확인
 		echo "RDS 인스턴스가 배포되지 않았습니다."; \
 	fi
 
-redis-status: ## Redis 클러스터 상태 확인
+redis-status: ## Valkey 클러스터 상태 확인
 	@REDIS_ID=$$(terraform output -raw redis_cluster_id 2>/dev/null) && \
 	if [ -n "$$REDIS_ID" ]; then \
-		aws elasticache describe-cache-clusters --cache-cluster-id $$REDIS_ID --show-cache-node-info --query 'CacheClusters[0].{Status:CacheClusterStatus,NodeType:CacheNodeType,Engine:Engine}'; \
+		aws elasticache describe-replication-groups --replication-group-id $$REDIS_ID --query 'ReplicationGroups[0].{Status:Status,NodeType:CacheNodeType,Engine:Engine}'; \
 	else \
-		echo "Redis 클러스터가 배포되지 않았습니다."; \
+		echo "Valkey 클러스터가 배포되지 않았습니다."; \
 	fi
 
 logs-eb: ## Elastic Beanstalk 로그 확인

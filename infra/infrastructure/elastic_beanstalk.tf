@@ -140,7 +140,7 @@ resource "aws_elastic_beanstalk_application" "app" {
 resource "aws_elastic_beanstalk_environment" "env" {
   name                = var.eb_environment_name
   application         = aws_elastic_beanstalk_application.app.name
-  solution_stack_name = "64bit Amazon Linux 2023 v4.3.0 running Docker"
+  solution_stack_name = data.aws_elastic_beanstalk_solution_stack.docker.name
 
   # Docker Compose 기반 배포 설정
   setting {
@@ -149,18 +149,7 @@ resource "aws_elastic_beanstalk_environment" "env" {
     value     = var.environment == "dev" ? "docker-compose.dev.yml" : "docker-compose.prod.yml"
   }
 
-  # Docker 관련 설정
-  setting {
-    namespace = "aws:elasticbeanstalk:container:docker"
-    name      = "DockerLoggingDriver"
-    value     = "awslogs"
-  }
-
-  setting {
-    namespace = "aws:elasticbeanstalk:container:docker"
-    name      = "DockerLoggingDriverOptions"
-    value     = "awslogs-group=/aws/elasticbeanstalk/${var.eb_environment_name},awslogs-region=${var.aws_region}"
-  }
+  # Docker 로깅은 Dockerrun.aws.json에서 설정
 
   setting {
     namespace = "aws:ec2:vpc"
@@ -172,14 +161,14 @@ resource "aws_elastic_beanstalk_environment" "env" {
   setting {
     namespace = "aws:ec2:vpc"
     name      = "Subnets"
-    value     = join(",", data.aws_subnets.private.ids)
+    value     = join(",", data.aws_subnets.all.ids)
   }
 
-  # ALB는 Public 서브넷에 배치
+  # ALB는 Public 서브넷에 배치 (서로 다른 AZ만)
   setting {
     namespace = "aws:ec2:vpc"
     name      = "ELBSubnets"
-    value     = join(",", data.aws_subnets.public.ids)
+    value     = join(",", local.public_subnet_ids)
   }
 
   setting {
@@ -230,6 +219,32 @@ resource "aws_elastic_beanstalk_environment" "env" {
     value     = "enhanced"
   }
 
+  # Docker 컨테이너 포트 설정 (8000 포트)
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "PORT"
+    value     = "8000"
+  }
+
+  # ALB Health Check 설정
+  setting {
+    namespace = "aws:elasticbeanstalk:environment:process:default"
+    name      = "Port"
+    value     = "8000"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:environment:process:default"
+    name      = "Protocol"
+    value     = "HTTP"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:environment:process:default"
+    name      = "HealthCheckPath"
+    value     = "/health"
+  }
+
   # 환경 변수들 (데이터베이스 연결 정보)
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
@@ -264,7 +279,7 @@ resource "aws_elastic_beanstalk_environment" "env" {
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "REDIS_HOST"
-    value     = aws_elasticache_cluster.redis.cache_nodes[0].address
+    value     = aws_elasticache_replication_group.redis.primary_endpoint_address
   }
 
   setting {

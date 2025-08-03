@@ -26,7 +26,7 @@ resource "aws_security_group" "redis_sg" {
 # ElastiCache는 Private 서브넷에만 배치 (보안)
 resource "aws_elasticache_subnet_group" "redis" {
   name       = "${var.project_name}-${var.environment}-redis-subnet-group"
-  subnet_ids = data.aws_subnets.private.ids
+  subnet_ids = data.aws_subnets.all.ids
 
   tags = {
     Name = "${var.project_name}-${var.environment}-redis-subnet-group"
@@ -35,8 +35,8 @@ resource "aws_elasticache_subnet_group" "redis" {
 
 # ElastiCache Parameter Group
 resource "aws_elasticache_parameter_group" "redis" {
-  family = "redis7.x"
-  name   = "${var.project_name}-${var.environment}-redis-params"
+  family = "valkey7"
+  name   = "${var.project_name}-${var.environment}-valkey-params"
 
   parameter {
     name  = "maxmemory-policy"
@@ -53,15 +53,21 @@ resource "aws_elasticache_parameter_group" "redis" {
   }
 }
 
-# ElastiCache Redis Cluster
-resource "aws_elasticache_cluster" "redis" {
-  cluster_id           = var.redis_cluster_id
-  engine               = "redis"
-  engine_version       = "7.0"
+# ElastiCache Valkey Replication Group
+resource "aws_elasticache_replication_group" "redis" {
+  replication_group_id       = var.redis_cluster_id
+  description                = "Valkey cluster for ${var.project_name}-${var.environment}"
+
+  engine               = "valkey"
+  engine_version       = "7.2"
   node_type            = var.redis_node_type
-  num_cache_nodes      = 1
-  parameter_group_name = aws_elasticache_parameter_group.redis.name
   port                 = var.redis_port
+  parameter_group_name = aws_elasticache_parameter_group.redis.name
+
+  # Single node configuration (no replication for cost optimization)
+  num_cache_clusters         = 1
+  automatic_failover_enabled = false
+  multi_az_enabled          = false
 
   # Network settings
   subnet_group_name  = aws_elasticache_subnet_group.redis.name
@@ -81,16 +87,16 @@ resource "aws_elasticache_cluster" "redis" {
   }
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-redis"
+    Name = "${var.project_name}-${var.environment}-valkey"
   }
 }
 
-# CloudWatch Log Group for Redis slow logs
+# CloudWatch Log Group for Valkey slow logs
 resource "aws_cloudwatch_log_group" "redis_slow" {
-  name              = "/aws/elasticache/redis/${var.project_name}-${var.environment}"
+  name              = "/aws/elasticache/valkey/${var.project_name}-${var.environment}"
   retention_in_days = var.environment == "prod" ? 30 : 7
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-redis-logs"
+    Name = "${var.project_name}-${var.environment}-valkey-logs"
   }
 }

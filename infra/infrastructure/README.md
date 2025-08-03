@@ -1,6 +1,6 @@
 # AWS Infrastructure as Code
 
-Elastic Beanstalk, RDS MySQL, ElastiCache Redis를 관리하는 Terraform 코드입니다.
+Elastic Beanstalk, RDS MySQL, ElastiCache Valkey를 관리하는 Terraform 코드입니다.
 
 ## 📁 파일 구조
 
@@ -10,7 +10,7 @@ infra/infrastructure/
 ├── variables.tf              # 변수 정의
 ├── elastic_beanstalk.tf      # Elastic Beanstalk 리소스
 ├── rds.tf                   # RDS MySQL 리소스
-├── elasticache.tf           # ElastiCache Redis 리소스
+├── elasticache.tf           # ElastiCache Valkey 리소스
 ├── outputs.tf               # 출력 값 정의
 ├── terraform.dev.tfvars     # 개발 환경 설정
 ├── terraform.prod.tfvars    # 운영 환경 설정
@@ -23,12 +23,12 @@ infra/infrastructure/
 ### 개발 환경 (dev)
 - **Elastic Beanstalk**: t3.micro, 단일 인스턴스
 - **RDS MySQL**: db.t3.micro, 20GB, 백업 1일
-- **ElastiCache Redis**: cache.t3.micro, 스냅샷 1일
+- **ElastiCache Valkey**: cache.t3.micro, 스냅샷 1일
 
 ### 프로덕션 환경 (prod)
 - **Elastic Beanstalk**: t3.small, Auto Scaling (1-3 인스턴스)
 - **RDS MySQL**: db.t3.small, 100GB, 백업 7일, Enhanced Monitoring
-- **ElastiCache Redis**: cache.t3.small, 스냅샷 5일
+- **ElastiCache Valkey**: cache.t3.small, 스냅샷 5일
 
 ## 🚀 사용 방법
 
@@ -98,8 +98,8 @@ Elastic Beanstalk 환경에 다음 변수들이 자동으로 설정됩니다:
 - `DB_NAME`: 데이터베이스 이름
 - `DB_USER`: 데이터베이스 사용자
 - `DB_PASSWORD`: 데이터베이스 비밀번호
-- `REDIS_HOST`: Redis 엔드포인트
-- `REDIS_PORT`: Redis 포트
+- `REDIS_HOST`: Valkey 엔드포인트
+- `REDIS_PORT`: Valkey 포트
 
 ## ⚙️ 설정 커스터마이징
 
@@ -114,7 +114,7 @@ eb_instance_type = "t3.small"
 # RDS 인스턴스 클래스
 db_instance_class = "db.t3.small"
 
-# Redis 노드 타입
+# Valkey 노드 타입
 redis_node_type = "cache.t3.small"
 ```
 
@@ -139,7 +139,7 @@ make full-status
 # 개별 서비스 상태
 make eb-status    # Elastic Beanstalk
 make rds-status   # RDS
-make redis-status # ElastiCache
+make redis-status # ElastiCache Valkey
 ```
 
 ### 로그 확인
@@ -160,7 +160,7 @@ aws rds create-db-snapshot \
   --db-instance-identifier $(terraform output -raw rds_identifier) \
   --db-snapshot-identifier manual-backup-$(date +%Y%m%d)
 
-# Redis 스냅샷 생성
+# Valkey 스냅샷 생성
 aws elasticache create-snapshot \
   --cache-cluster-id $(terraform output -raw redis_cluster_id) \
   --snapshot-name manual-backup-$(date +%Y%m%d)
@@ -186,7 +186,7 @@ aws ec2 describe-security-groups \
   --group-ids $(terraform output -raw rds_security_group_id)
 ```
 
-**3. Redis 연결 실패**
+**3. Valkey 연결 실패**
 
 ```bash
 # 클러스터 노드 정보 확인
@@ -199,7 +199,7 @@ aws elasticache describe-cache-clusters \
 
 ### 개발 환경
 - 모든 리소스 t3.micro/cache.t3.micro 사용
-- RDS 백업 1일, Redis 스냅샷 1일
+- RDS 백업 1일, Valkey 스냅샷 1일
 - Enhanced Monitoring 비활성화
 
 ### 프로덕션 환경

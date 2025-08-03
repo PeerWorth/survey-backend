@@ -27,7 +27,7 @@ resource "aws_security_group" "rds_sg" {
 # RDS는 Private 서브넷에만 배치 (보안)
 resource "aws_db_subnet_group" "mysql" {
   name       = "${var.project_name}-${var.environment}-db-subnet-group"
-  subnet_ids = data.aws_subnets.private.ids
+  subnet_ids = data.aws_subnets.all.ids
 
   tags = {
     Name = "${var.project_name}-${var.environment}-db-subnet-group"
@@ -98,7 +98,7 @@ resource "aws_db_instance" "mysql" {
   # Monitoring and logging (Enhanced Monitoring 비활성화)
   monitoring_interval = 0
   monitoring_role_arn = null
-  enabled_cloudwatch_logs_exports      = ["error", "general", "slow"]
+  enabled_cloudwatch_logs_exports      = ["error", "general", "slowquery"]
   performance_insights_enabled         = var.environment == "prod" ? true : false
   performance_insights_retention_period = var.environment == "prod" ? 7 : null
 

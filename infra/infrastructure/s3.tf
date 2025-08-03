@@ -34,6 +34,11 @@ resource "aws_s3_bucket_lifecycle_configuration" "eb_deployments_lifecycle" {
     id     = "delete_old_versions"
     status = "Enabled"
 
+    # 필터 추가 (필수)
+    filter {
+      prefix = ""
+    }
+
     # 30일 후 이전 버전 삭제 (dev는 7일)
     noncurrent_version_expiration {
       noncurrent_days = var.environment == "prod" ? 30 : 7

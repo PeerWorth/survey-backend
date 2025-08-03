@@ -17,6 +17,7 @@ class BaseRepository(ABC, Generic[T]):
 
     async def commit_and_optional_refresh(self, instance: T, refresh: bool = False) -> Optional[T]:
         try:
+            await self.session.flush()  # DB에 먼저 반영
             await self.session.commit()
             if refresh:
                 await self.session.refresh(instance)

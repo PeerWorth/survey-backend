@@ -85,20 +85,20 @@ variable "db_password" {
   sensitive   = true
 }
 
-# ElastiCache 설정
+# ElastiCache 설정 (Valkey)
 variable "redis_cluster_id" {
-  description = "Redis 클러스터 ID"
+  description = "Valkey 클러스터 ID"
   type        = string
 }
 
 variable "redis_node_type" {
-  description = "Redis 노드 타입"
+  description = "Valkey 노드 타입"
   type        = string
   default     = "cache.t3.micro"
 }
 
 variable "redis_port" {
-  description = "Redis 포트"
+  description = "Valkey 포트"
   type        = number
   default     = 6379
 }

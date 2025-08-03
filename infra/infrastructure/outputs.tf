@@ -35,20 +35,20 @@ output "rds_identifier" {
   value       = aws_db_instance.mysql.identifier
 }
 
-# ElastiCache 출력
+# ElastiCache (Valkey) 출력
 output "redis_endpoint" {
-  description = "Redis 엔드포인트"
-  value       = aws_elasticache_cluster.redis.cache_nodes[0].address
+  description = "Valkey 엔드포인트"
+  value       = aws_elasticache_replication_group.redis.primary_endpoint_address
 }
 
 output "redis_port" {
-  description = "Redis 포트"
-  value       = aws_elasticache_cluster.redis.port
+  description = "Valkey 포트"
+  value       = aws_elasticache_replication_group.redis.port
 }
 
 output "redis_cluster_id" {
-  description = "Redis 클러스터 ID"
-  value       = aws_elasticache_cluster.redis.cluster_id
+  description = "Valkey 클러스터 ID"
+  value       = aws_elasticache_replication_group.redis.replication_group_id
 }
 
 # 보안 그룹 출력
@@ -102,8 +102,8 @@ output "vpc_id" {
 }
 
 output "public_subnet_ids" {
-  description = "Public 서브넷 ID 목록"
-  value       = data.aws_subnets.public.ids
+  description = "Public 서브넷 ID 목록 (ALB용)"
+  value       = local.public_subnet_ids
 }
 
 output "private_subnet_ids" {
