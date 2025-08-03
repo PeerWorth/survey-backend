@@ -120,6 +120,7 @@ jobs:
       if: always()
       uses: actions/github-script@v7
       with:
+        github-token: ${{ secrets.GH_PAT }}
         script: |
           const { owner, repo } = context.repo;
           const run_id = context.runId;
@@ -131,9 +132,17 @@ jobs:
             ? `Dev deployment completed successfully! Version: ${{ env.NEW_VERSION }}`
             : 'Dev deployment failed!';
 
-          await github.rest.issues.createComment({
-            owner,
-            repo,
-            issue_number: context.issue.number,
-            body: `${emoji} ${message}\n\n[View deployment logs](${run_url})`
-          });
+          // PR 이벤트일 때만 코멘트 작성
+          if (context.eventName === 'pull_request') {
+            try {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: context.issue.number,
+                body: `${emoji} ${message}\n\n[View deployment logs](${run_url})`
+              });
+            } catch (error) {
+              console.log('Failed to create comment:', error.message);
+              // 코멘트 실패는 무시하고 진행
+            }
+          }
