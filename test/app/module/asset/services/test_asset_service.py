@@ -284,14 +284,14 @@ class TestSaveUserProfile:
         mock_user_salary_repo.get_by_uuid.return_value = UserSalary(
             id=unique_id.bytes, user_id=1, job_id=1, experience=3, salary=50000000
         )
-        mock_user_profile_repo.save.return_value = MagicMock(salary_id=unique_id.bytes)
+        mock_user_profile_repo.upsert.return_value = MagicMock(salary_id=unique_id.bytes)
 
         # When
         result = await asset_service.save_user_profile(request)
 
         # Then
         assert result is True
-        saved_profile = mock_user_profile_repo.save.call_args[0][0]
+        saved_profile = mock_user_profile_repo.upsert.call_args[0][0]
         assert saved_profile.salary_id == unique_id.bytes
         assert saved_profile.age == 28
         assert saved_profile.save_rate == 45
@@ -314,3 +314,56 @@ class TestSaveUserProfile:
         # When & Then
         with pytest.raises(NoMatchUserSalary):
             await asset_service.save_user_profile(request)
+
+    @pytest.mark.asyncio
+    async def test_save_user_profile_duplicate_id_updates(
+        self, asset_service, mock_user_profile_repo, mock_user_salary_repo
+    ):
+        # Given - 동일한 salary_id로 두 번 요청하는 경우
+        unique_id = uuid.uuid4()
+
+        # UserSalary가 이미 존재한다고 가정
+        mock_user_salary_repo.get_by_uuid.return_value = UserSalary(
+            id=unique_id.bytes, user_id=1, job_id=1, experience=3, salary=50000000
+        )
+
+        # 첫 번째 요청
+        first_request = UserProfilePostRequest(
+            unique_id=unique_id,
+            age=25,
+            save_rate=30,
+            has_car=False,
+            is_monthly_rent=True,
+        )
+
+        # 두 번째 요청 (동일한 ID, 다른 데이터)
+        second_request = UserProfilePostRequest(
+            unique_id=unique_id,
+            age=28,
+            save_rate=45,
+            has_car=True,
+            is_monthly_rent=False,
+        )
+
+        mock_user_profile_repo.upsert.return_value = MagicMock(salary_id=unique_id.bytes)
+
+        # When - 첫 번째 저장
+        result1 = await asset_service.save_user_profile(first_request)
+
+        # When - 두 번째 저장 (업데이트)
+        result2 = await asset_service.save_user_profile(second_request)
+
+        # Then
+        assert result1 is True
+        assert result2 is True
+
+        # upsert가 두 번 호출되었는지 확인
+        assert mock_user_profile_repo.upsert.call_count == 2
+
+        # 두 번째 호출의 데이터 확인
+        second_call_profile = mock_user_profile_repo.upsert.call_args[0][0]
+        assert second_call_profile.salary_id == unique_id.bytes
+        assert second_call_profile.age == 28
+        assert second_call_profile.save_rate == 45
+        assert second_call_profile.has_car is True
+        assert second_call_profile.monthly_rent is False

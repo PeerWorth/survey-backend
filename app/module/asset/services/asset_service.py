@@ -81,7 +81,6 @@ class AssetService:
         data["salary"] = data["salary"] * SALARY_THOUSAND_WON
         user_salary = UserSalary(**data)
 
-        # upsert를 사용하여 동일한 ID가 있으면 업데이트, 없으면 생성
         saved = await self.user_salary_repo.upsert(user_salary)
         return bool(saved)
 
@@ -94,10 +93,12 @@ class AssetService:
             raise NoMatchUserSalary()
 
         data["salary_id"] = uid.bytes
+        # TODO: 테이블 필드명 스키마 변경
         # is_monthly_rent를 monthly_rent로 변환
         if "is_monthly_rent" in data:
             data["monthly_rent"] = data.pop("is_monthly_rent")
 
         user_profile = UserProfile(**data)
-        saved = await self.user_profile_repo.save(user_profile)
+
+        saved = await self.user_profile_repo.upsert(user_profile)
         return bool(saved)
