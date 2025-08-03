@@ -111,3 +111,19 @@ output "private_subnet_ids" {
   description = "Private 서브넷 ID 목록"
   value       = data.aws_subnets.private.ids
 }
+
+output "all_subnet_ids" {
+  description = "모든 서브넷 ID 목록 (쉼표로 구분)"
+  value       = join(",", data.aws_subnets.all.ids)
+}
+
+# IAM 역할 정보
+output "eb_service_role_arn" {
+  description = "Elastic Beanstalk 서비스 역할 ARN"
+  value       = aws_iam_role.eb_service_role.arn
+}
+
+output "eb_instance_profile_name" {
+  description = "Elastic Beanstalk EC2 인스턴스 프로파일 이름"
+  value       = aws_iam_instance_profile.eb_ec2_profile.name
+}
