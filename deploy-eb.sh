@@ -33,13 +33,16 @@ cp Dockerfile .ebdeploy/
 cp docker-compose.${ENV}.yml .ebdeploy/docker-compose.yml
 # Dockerrun.aws.json은 제외 - docker-compose.yml 사용
 cp -r app .ebdeploy/
-cp -r data .ebdeploy/
 cp pyproject.toml .ebdeploy/
 cp poetry.lock .ebdeploy/
 cp alembic.ini .ebdeploy/
 cp -r alembic .ebdeploy/
 cp main.py .ebdeploy/
-cp dependencies.py .ebdeploy/
+
+# 선택적 파일들 (있으면 복사)
+[ -f dependencies.py ] && cp dependencies.py .ebdeploy/
+[ -f main_config.py ] && cp main_config.py .ebdeploy/
+[ -d database ] && cp -r database .ebdeploy/
 
 # .env 파일은 제외 (Elastic Beanstalk 환경 변수 사용)
 

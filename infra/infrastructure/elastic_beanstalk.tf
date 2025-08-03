@@ -167,13 +167,31 @@ resource "aws_elastic_beanstalk_application" "app" {
   }
 }
 
-# Elastic Beanstalk Environment는 GitHub Actions에서 생성
-# 아래 리소스는 주석 처리하여 Terraform에서 관리하지 않음
-/*
+# 초기 더미 애플리케이션 버전
+resource "aws_elastic_beanstalk_application_version" "initial" {
+  name         = "initial-${var.environment}"
+  application  = aws_elastic_beanstalk_application.app.name
+  description  = "Initial version to prevent health check failures"
+  bucket       = aws_s3_bucket.eb_deployments.bucket
+  key          = "initial-version.zip"
+
+  depends_on = [aws_s3_object.initial_version]
+}
+
+# 더미 소스 파일 생성
+resource "aws_s3_object" "initial_version" {
+  bucket = aws_s3_bucket.eb_deployments.bucket
+  key    = "initial-version.zip"
+  source = "${path.module}/initial-version.zip"
+  etag   = filemd5("${path.module}/initial-version.zip")
+}
+
+# Elastic Beanstalk Environment
 resource "aws_elastic_beanstalk_environment" "env" {
   name                = var.eb_environment_name
   application         = aws_elastic_beanstalk_application.app.name
   solution_stack_name = data.aws_elastic_beanstalk_solution_stack.docker.name
+  version_label       = aws_elastic_beanstalk_application_version.initial.name
 
   # Docker Compose 기반 배포 설정
   setting {
@@ -395,4 +413,3 @@ resource "aws_elastic_beanstalk_environment" "env" {
     Name = "${var.project_name}-${var.environment}-eb-env"
   }
 }
-*/
