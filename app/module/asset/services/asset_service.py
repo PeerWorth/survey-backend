@@ -81,23 +81,24 @@ class AssetService:
         data["salary"] = data["salary"] * SALARY_THOUSAND_WON
         user_salary = UserSalary(**data)
 
-        saved = await self.user_salary_repo.save(user_salary, refresh=True)
+        saved = await self.user_salary_repo.upsert(user_salary)
         return bool(saved)
 
     async def save_user_profile(self, user_profile_request: UserProfilePostRequest) -> bool:
         data = user_profile_request.model_dump()
         uid: uuid.UUID = data.pop("unique_id")
 
-        # UserSalary가 존재하는지 먼저 확인
         user_salary = await self.user_salary_repo.get_by_uuid(uid)
         if not user_salary:
             raise NoMatchUserSalary()
 
         data["salary_id"] = uid.bytes
+        # TODO: 테이블 필드명 스키마 변경
         # is_monthly_rent를 monthly_rent로 변환
         if "is_monthly_rent" in data:
             data["monthly_rent"] = data.pop("is_monthly_rent")
 
         user_profile = UserProfile(**data)
-        saved = await self.user_profile_repo.save(user_profile)
+
+        saved = await self.user_profile_repo.upsert(user_profile)
         return bool(saved)
