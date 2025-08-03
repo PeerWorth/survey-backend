@@ -127,14 +127,26 @@ jobs:
 
         # 최신 solution stack 가져오기
         echo "Fetching available solution stacks..."
+
+        # Docker를 지원하는 Amazon Linux 2023 스택 찾기
         SOLUTION_STACK=$(aws elasticbeanstalk list-available-solution-stacks \
-          --query 'SolutionStacks[?contains(@, `Docker`)][0]' \
+          --query 'SolutionStacks[?contains(@, `Amazon Linux 2023`) && contains(@, `Docker`)][0]' \
           --output text)
 
-        # 만약 찾지 못했다면 기본값 사용
+        # 찾지 못했다면 Amazon Linux 2 스택 시도
         if [ -z "$SOLUTION_STACK" ] || [ "$SOLUTION_STACK" == "None" ]; then
-          echo "Could not find Docker solution stack, using default..."
-          SOLUTION_STACK="64bit Amazon Linux 2023 v4.3.0 running Docker"
+          echo "Could not find Amazon Linux 2023 Docker stack, trying Amazon Linux 2..."
+          SOLUTION_STACK=$(aws elasticbeanstalk list-available-solution-stacks \
+            --query 'SolutionStacks[?contains(@, `Amazon Linux 2`) && contains(@, `Docker`) && !contains(@, `Multi-container`)][0]' \
+            --output text)
+        fi
+
+        # 그래도 찾지 못했다면 모든 Docker 스택 중 첫 번째 사용
+        if [ -z "$SOLUTION_STACK" ] || [ "$SOLUTION_STACK" == "None" ]; then
+          echo "Could not find specific Docker stack, using any Docker stack..."
+          SOLUTION_STACK=$(aws elasticbeanstalk list-available-solution-stacks \
+            --query 'SolutionStacks[?contains(@, `Docker`) && !contains(@, `Multi-container`)][0]' \
+            --output text)
         fi
 
         echo "Using solution stack: $SOLUTION_STACK"
