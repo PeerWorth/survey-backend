@@ -167,7 +167,9 @@ resource "aws_elastic_beanstalk_application" "app" {
   }
 }
 
-# Elastic Beanstalk Environment
+# Elastic Beanstalk Environment는 GitHub Actions에서 생성
+# 아래 리소스는 주석 처리하여 Terraform에서 관리하지 않음
+/*
 resource "aws_elastic_beanstalk_environment" "env" {
   name                = var.eb_environment_name
   application         = aws_elastic_beanstalk_application.app.name
@@ -393,3 +395,4 @@ resource "aws_elastic_beanstalk_environment" "env" {
     Name = "${var.project_name}-${var.environment}-eb-env"
   }
 }
+*/
