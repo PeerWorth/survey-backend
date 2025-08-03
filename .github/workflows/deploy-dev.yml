@@ -128,7 +128,7 @@ jobs:
         # 최신 solution stack 가져오기
         echo "Fetching available solution stacks..."
         SOLUTION_STACK=$(aws elasticbeanstalk list-available-solution-stacks \
-          --query "SolutionStacks[?contains(@, 'Docker')][0]" \
+          --query 'SolutionStacks[?contains(@, `Docker`)][0]' \
           --output text)
 
         # 만약 찾지 못했다면 기본값 사용
