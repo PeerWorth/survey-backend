@@ -20,6 +20,7 @@ Pipfile.lock
 env3.*
 .env
 *.env*
+.ebdeploy
 docs_build
 site_build
 venv

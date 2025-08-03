@@ -103,74 +103,21 @@ jobs:
       run: |
         aws s3 cp app.zip s3://${{ secrets.DEV_EB_BUCKET }}/app-${{ env.NEW_VERSION }}.zip
 
-    - name: Check if EB environment exists
-      id: check_env
+    - name: Verify EB environment is ready
       run: |
-        ENV_EXISTS=$(aws elasticbeanstalk describe-environments \
+        echo "Verifying Elastic Beanstalk environment status..."
+        ENV_STATUS=$(aws elasticbeanstalk describe-environments \
           --application-name ${{ secrets.DEV_EB_APPLICATION_NAME }} \
           --environment-names ${{ secrets.DEV_EB_ENV_NAME }} \
-          --query "Environments[?Status!='Terminated'].EnvironmentName" \
-          --output text || echo "")
+          --query "Environments[0].Status" \
+          --output text 2>/dev/null || echo "NOT_FOUND")
 
-        if [ -z "$ENV_EXISTS" ]; then
-          echo "Environment does not exist or is terminated"
-          echo "env_exists=false" >> $GITHUB_OUTPUT
-        else
-          echo "Environment exists: $ENV_EXISTS"
-          echo "env_exists=true" >> $GITHUB_OUTPUT
+        if [ "$ENV_STATUS" = "NOT_FOUND" ] || [ "$ENV_STATUS" = "None" ]; then
+          echo "❌ Environment not found. Please run 'make apply-dev' first."
+          exit 1
         fi
 
-    - name: Create EB environment if not exists
-      if: steps.check_env.outputs.env_exists == 'false'
-      run: |
-        echo "Creating new Elastic Beanstalk environment..."
-
-        # 최신 solution stack 가져오기
-        echo "Fetching available solution stacks..."
-
-        # Docker를 지원하는 Amazon Linux 2023 스택 찾기
-        SOLUTION_STACK=$(aws elasticbeanstalk list-available-solution-stacks \
-          --query 'SolutionStacks[?contains(@, `Amazon Linux 2023`) && contains(@, `Docker`)][0]' \
-          --output text)
-
-        # 찾지 못했다면 Amazon Linux 2 스택 시도
-        if [ -z "$SOLUTION_STACK" ] || [ "$SOLUTION_STACK" == "None" ]; then
-          echo "Could not find Amazon Linux 2023 Docker stack, trying Amazon Linux 2..."
-          SOLUTION_STACK=$(aws elasticbeanstalk list-available-solution-stacks \
-            --query 'SolutionStacks[?contains(@, `Amazon Linux 2`) && contains(@, `Docker`) && !contains(@, `Multi-container`)][0]' \
-            --output text)
-        fi
-
-        # 그래도 찾지 못했다면 모든 Docker 스택 중 첫 번째 사용
-        if [ -z "$SOLUTION_STACK" ] || [ "$SOLUTION_STACK" == "None" ]; then
-          echo "Could not find specific Docker stack, using any Docker stack..."
-          SOLUTION_STACK=$(aws elasticbeanstalk list-available-solution-stacks \
-            --query 'SolutionStacks[?contains(@, `Docker`) && !contains(@, `Multi-container`)][0]' \
-            --output text)
-        fi
-
-        echo "Using solution stack: $SOLUTION_STACK"
-
-        # 환경 생성
-        aws elasticbeanstalk create-environment \
-          --application-name ${{ secrets.DEV_EB_APPLICATION_NAME }} \
-          --environment-name ${{ secrets.DEV_EB_ENV_NAME }} \
-          --solution-stack-name "$SOLUTION_STACK" \
-          --version-label ${{ env.NEW_VERSION }} \
-          --option-settings "Namespace=aws:elasticbeanstalk:environment,OptionName=ServiceRole,Value=${{ secrets.DEV_EB_SERVICE_ROLE }}" \
-            "Namespace=aws:autoscaling:launchconfiguration,OptionName=IamInstanceProfile,Value=${{ secrets.DEV_EB_INSTANCE_PROFILE }}" \
-            "Namespace=aws:elasticbeanstalk:environment,OptionName=LoadBalancerType,Value=application" \
-            "Namespace=aws:elasticbeanstalk:environment:process:default,OptionName=Port,Value=8000" \
-            "Namespace=aws:elasticbeanstalk:environment:process:default,OptionName=Protocol,Value=HTTP" \
-            "Namespace=aws:elasticbeanstalk:environment:process:default,OptionName=HealthCheckPath,Value=/health" \
-            "Namespace=aws:ec2:vpc,OptionName=VPCId,Value=${{ secrets.DEV_VPC_ID }}" \
-            "Namespace=aws:ec2:vpc,OptionName=Subnets,Value=${{ secrets.DEV_SUBNET_IDS }}"
-
-        # 환경 생성 완료 대기
-        echo "Waiting for environment creation..."
-        aws elasticbeanstalk wait environment-exists \
-          --application-name ${{ secrets.DEV_EB_APPLICATION_NAME }} \
-          --environment-names ${{ secrets.DEV_EB_ENV_NAME }}
+        echo "✅ Environment status: $ENV_STATUS"
 
     - name: Create new Elastic Beanstalk Application Version
       run: |

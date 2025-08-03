@@ -5,20 +5,19 @@ output "eb_application_name" {
 }
 
 output "eb_environment_name" {
-  description = "Elastic Beanstalk 환경 이름 (GitHub Actions에서 사용)"
-  value       = var.eb_environment_name
+  description = "Elastic Beanstalk 환경 이름"
+  value       = aws_elastic_beanstalk_environment.env.name
 }
 
-# 환경이 GitHub Actions에서 생성되므로 URL과 CNAME은 출력하지 않음
-# output "eb_environment_url" {
-#   description = "Elastic Beanstalk 환경 URL"
-#   value       = aws_elastic_beanstalk_environment.env.endpoint_url
-# }
+output "eb_environment_url" {
+  description = "Elastic Beanstalk 환경 URL"
+  value       = aws_elastic_beanstalk_environment.env.endpoint_url
+}
 
-# output "eb_cname" {
-#   description = "Elastic Beanstalk CNAME"
-#   value       = aws_elastic_beanstalk_environment.env.cname
-# }
+output "eb_cname" {
+  description = "Elastic Beanstalk CNAME"
+  value       = aws_elastic_beanstalk_environment.env.cname
+}
 
 # RDS 출력
 output "rds_endpoint" {

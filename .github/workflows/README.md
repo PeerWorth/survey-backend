@@ -112,25 +112,39 @@ terraform {
 - S3 버킷 읽기/쓰기 권한
 - DynamoDB 테이블 권한 (상태 잠금용)
 
-## 워크플로우 트리거
+## 완전 자동화 워크플로우
 
-- `dev` 브랜치에 push 시 자동 배포
-- `dev` 브랜치로 PR이 merge될 때 자동 배포
-- 수동 트리거도 가능 (workflow_dispatch 추가 시)
+### 초기 설정 (한 번만)
+```bash
+# 1. 인프라 + EB 환경 생성 (더미 버전 포함)
+cd infra/infrastructure
+make apply-dev
 
-## 로컬 테스트
+# 2. 생성된 환경 확인
+make eb-status
+```
 
-GitHub Actions 실행 전 로컬에서 테스트:
+### 자동 배포
+- `dev` 브랜치로 PR merge 시 자동 배포
+- 첫 배포부터 GitHub Actions로 완전 자동화
+- `deploy-eb.sh` 스크립트 불필요
+
+### 배포 프로세스
+1. PR을 dev 브랜치로 merge
+2. GitHub Actions 자동 실행:
+   - 버전 태그 자동 생성
+   - 애플리케이션 패키징
+   - S3 업로드
+   - EB 환경 업데이트
+   - 배포 완료 알림
+
+## 로컬 테스트 (선택사항)
 
 ```bash
-# AWS 자격 증명 설정
-export AWS_ACCESS_KEY_ID="your-key"
-export AWS_SECRET_ACCESS_KEY="your-secret"
-
 # Terraform 테스트
 cd infra/infrastructure
 terraform plan -var-file=terraform.dev.tfvars
 
-# 배포 스크립트 테스트
+# 수동 배포 (필요시)
 ./deploy-eb.sh dev
 ```
