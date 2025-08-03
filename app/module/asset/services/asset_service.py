@@ -81,14 +81,14 @@ class AssetService:
         data["salary"] = data["salary"] * SALARY_THOUSAND_WON
         user_salary = UserSalary(**data)
 
-        saved = await self.user_salary_repo.save(user_salary, refresh=True)
+        # upsert를 사용하여 동일한 ID가 있으면 업데이트, 없으면 생성
+        saved = await self.user_salary_repo.upsert(user_salary)
         return bool(saved)
 
     async def save_user_profile(self, user_profile_request: UserProfilePostRequest) -> bool:
         data = user_profile_request.model_dump()
         uid: uuid.UUID = data.pop("unique_id")
 
-        # UserSalary가 존재하는지 먼저 확인
         user_salary = await self.user_salary_repo.get_by_uuid(uid)
         if not user_salary:
             raise NoMatchUserSalary()

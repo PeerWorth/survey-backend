@@ -210,23 +210,66 @@ class TestSaveUserSalary:
             experience=5,
             salary=80000,  # 단위: 천원
         )
-        mock_user_salary_repo.save.return_value = MagicMock(id=unique_id.bytes)
+        mock_user_salary_repo.upsert.return_value = MagicMock(id=unique_id.bytes)
 
         # When
         result = await asset_service.save_user_salary(request)
 
         # Then
         assert result is True
-        saved_salary = mock_user_salary_repo.save.call_args[0][0]
+        saved_salary = mock_user_salary_repo.upsert.call_args[0][0]
         assert saved_salary.id == unique_id.bytes
         assert saved_salary.salary == 80000 * SALARY_THOUSAND_WON  # 80000000
         assert saved_salary.job_id == 2
         assert saved_salary.experience == 5
 
+    @pytest.mark.asyncio
+    async def test_save_user_salary_duplicate_id_updates(self, asset_service, mock_user_salary_repo):
+        # Given - 동일한 ID로 두 번 요청하는 경우
+        unique_id = uuid.uuid4()
+
+        # 첫 번째 요청
+        first_request = UserSalaryPostRequest(
+            unique_id=unique_id,
+            job_id=1,
+            experience=3,
+            salary=50000,
+        )
+
+        # 두 번째 요청 (동일한 ID, 다른 데이터)
+        second_request = UserSalaryPostRequest(
+            unique_id=unique_id,
+            job_id=2,
+            experience=5,
+            salary=80000,
+        )
+
+        mock_user_salary_repo.upsert.return_value = MagicMock(id=unique_id.bytes)
+
+        # When - 첫 번째 저장
+        result1 = await asset_service.save_user_salary(first_request)
+
+        # When - 두 번째 저장 (업데이트)
+        result2 = await asset_service.save_user_salary(second_request)
+
+        # Then
+        assert result1 is True
+        assert result2 is True
+
+        # upsert가 두 번 호출되었는지 확인
+        assert mock_user_salary_repo.upsert.call_count == 2
+
+        # 두 번째 호출의 데이터 확인
+        second_call_salary = mock_user_salary_repo.upsert.call_args[0][0]
+        assert second_call_salary.id == unique_id.bytes
+        assert second_call_salary.salary == 80000 * SALARY_THOUSAND_WON
+        assert second_call_salary.job_id == 2
+        assert second_call_salary.experience == 5
+
 
 class TestSaveUserProfile:
     @pytest.mark.asyncio
-    async def test_save_user_profile_success(self, asset_service, mock_user_profile_repo):
+    async def test_save_user_profile_success(self, asset_service, mock_user_profile_repo, mock_user_salary_repo):
         # Given
         unique_id = uuid.uuid4()
         request = UserProfilePostRequest(
@@ -235,6 +278,11 @@ class TestSaveUserProfile:
             save_rate=45,
             has_car=False,
             is_monthly_rent=True,
+        )
+
+        # UserSalary가 이미 존재한다고 가정
+        mock_user_salary_repo.get_by_uuid.return_value = UserSalary(
+            id=unique_id.bytes, user_id=1, job_id=1, experience=3, salary=50000000
         )
         mock_user_profile_repo.save.return_value = MagicMock(salary_id=unique_id.bytes)
 
@@ -249,3 +297,20 @@ class TestSaveUserProfile:
         assert saved_profile.save_rate == 45
         assert saved_profile.has_car is False
         assert saved_profile.monthly_rent is True
+
+    @pytest.mark.asyncio
+    async def test_save_user_profile_no_salary_raises_error(self, asset_service, mock_user_salary_repo):
+        # Given - UserSalary가 존재하지 않는 경우
+        unique_id = uuid.uuid4()
+        request = UserProfilePostRequest(
+            unique_id=unique_id,
+            age=28,
+            save_rate=45,
+            has_car=False,
+            is_monthly_rent=True,
+        )
+        mock_user_salary_repo.get_by_uuid.return_value = None
+
+        # When & Then
+        with pytest.raises(NoMatchUserSalary):
+            await asset_service.save_user_profile(request)
