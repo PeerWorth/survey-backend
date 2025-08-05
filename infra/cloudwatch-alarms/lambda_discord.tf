@@ -97,7 +97,7 @@ def lambda_handler(event, context):
                 }
             ],
             "footer": {
-                "text": "${var.environment.upper()} Environment"
+                "text": f"{os.environ.get('ENVIRONMENT', 'Unknown').upper()} Environment"
             }
         }]
     }
@@ -128,6 +128,7 @@ resource "aws_lambda_function" "discord_webhook" {
   environment {
     variables = {
       DISCORD_WEBHOOK_URL = var.discord_webhook_url
+      ENVIRONMENT         = var.environment
     }
   }
 

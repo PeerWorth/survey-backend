@@ -1,19 +1,21 @@
-resource "aws_cloudwatch_metric_alarm" "rds_connection_saturation" {
-  alarm_name          = "${var.project_name}-${var.environment}-RDS-ConnectionSaturation-Critical"
-  alarm_description   = "RDS 연결 수가 임계점에 도달했습니다"
+# EC2 Connection Pool Error 알람 - Auto Scaling 트리거용
+resource "aws_cloudwatch_metric_alarm" "ec2_connection_pool_error" {
+  alarm_name          = "${var.project_name}-${var.environment}-EC2-ConnectionPoolError-ScaleUp"
+  alarm_description   = "EC2 connection pool 에러로 인한 auto scaling 트리거"
   comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = "2"
-  metric_name         = "DatabaseConnections"
-  namespace           = "AWS/RDS"
-  period              = "300"
-  statistic           = "Average"
-  threshold           = var.rds_connection_threshold
+  evaluation_periods  = "2"  # 2번 연속 임계값 초과시
+  metric_name         = "HTTPCode_Target_5XX_Count"  # 5XX 에러를 connection pool 에러 지표로 사용
+  namespace           = "AWS/ApplicationELB"
+  period              = "300"  # 5분
+  statistic           = "Sum"
+  threshold           = "10"   # 5분간 5XX 에러 10개 초과시 scale up
   treat_missing_data  = "notBreaching"
 
   dimensions = {
-    DBInstanceIdentifier = var.db_instance_identifier
+    LoadBalancer = local.alb_arn_suffix
   }
 
+  # Auto Scaling을 위한 알람이므로 SNS는 선택사항
   alarm_actions = [aws_sns_topic.critical_alerts.arn]
   ok_actions    = [aws_sns_topic.critical_alerts.arn]
 
@@ -21,109 +23,26 @@ resource "aws_cloudwatch_metric_alarm" "rds_connection_saturation" {
     Environment = var.environment
     Project     = var.project_name
     Priority    = "Critical"
-    Service     = "RDS"
+    Service     = "AutoScaling"
+    Purpose     = "ScaleUp"
   }
 }
 
-resource "aws_cloudwatch_metric_alarm" "rds_low_storage" {
-  alarm_name          = "${var.project_name}-${var.environment}-RDS-LowStorage-Critical"
-  alarm_description   = "RDS 저장 공간이 부족합니다"
+# Scale Down을 위한 알람 (5XX 에러가 낮을 때)
+resource "aws_cloudwatch_metric_alarm" "ec2_connection_pool_ok" {
+  alarm_name          = "${var.project_name}-${var.environment}-EC2-ConnectionPoolOK-ScaleDown"
+  alarm_description   = "Connection pool 안정화로 인한 scale down 트리거"
   comparison_operator = "LessThanThreshold"
-  evaluation_periods  = "1"
-  metric_name         = "FreeStorageSpace"
-  namespace           = "AWS/RDS"
-  period              = "300"
-  statistic           = "Average"
-  threshold           = var.rds_storage_threshold_gb * 1073741824  # GB to bytes
-  treat_missing_data  = "notBreaching"
-
-  dimensions = {
-    DBInstanceIdentifier = var.db_instance_identifier
-  }
-
-  alarm_actions = [aws_sns_topic.critical_alerts.arn]
-  ok_actions    = [aws_sns_topic.critical_alerts.arn]
-
-  tags = {
-    Environment = var.environment
-    Project     = var.project_name
-    Priority    = "Critical"
-    Service     = "RDS"
-  }
-}
-
-resource "aws_cloudwatch_metric_alarm" "alb_no_healthy_targets" {
-  count               = var.alb_name != "" ? 1 : 0
-  alarm_name          = "${var.project_name}-${var.environment}-ALB-NoHealthyTargets-Critical"
-  alarm_description   = "정상 타겟이 없어 서비스가 중단되었습니다"
-  comparison_operator = "LessThanThreshold"
-  evaluation_periods  = "1"
-  metric_name         = "HealthyHostCount"
+  evaluation_periods  = "5"
+  metric_name         = "HTTPCode_Target_5XX_Count"
   namespace           = "AWS/ApplicationELB"
   period              = "300"
-  statistic           = "Average"
-  threshold           = "1"
-  treat_missing_data  = "breaching"
-
-  dimensions = {
-    LoadBalancer = try(data.aws_lb.app_alb[0].arn_suffix, "")
-  }
-
-  alarm_actions = [aws_sns_topic.critical_alerts.arn]
-  ok_actions    = [aws_sns_topic.critical_alerts.arn]
-
-  tags = {
-    Environment = var.environment
-    Project     = var.project_name
-    Priority    = "Critical"
-    Service     = "ALB"
-  }
-}
-
-resource "aws_cloudwatch_metric_alarm" "ec2_status_check_failed" {
-  for_each            = toset(data.aws_instances.app_instances.ids)
-  alarm_name          = "${var.project_name}-${var.environment}-EC2-StatusCheckFailed-Critical-${each.key}"
-  alarm_description   = "EC2 인스턴스 상태 체크가 실패했습니다"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = "1"
-  metric_name         = "StatusCheckFailed"
-  namespace           = "AWS/EC2"
-  period              = "300"
-  statistic           = "Maximum"
-  threshold           = "0"
-  treat_missing_data  = "breaching"
-
-  dimensions = {
-    InstanceId = each.key
-  }
-
-  alarm_actions = [aws_sns_topic.critical_alerts.arn]
-  ok_actions    = [aws_sns_topic.critical_alerts.arn]
-
-  tags = {
-    Environment = var.environment
-    Project     = var.project_name
-    Priority    = "Critical"
-    Service     = "EC2"
-    InstanceId  = each.key
-  }
-}
-
-resource "aws_cloudwatch_metric_alarm" "redis_evictions" {
-  count               = var.elasticache_cluster_id != "" ? 1 : 0
-  alarm_name          = "${var.project_name}-${var.environment}-Redis-Evictions-Critical"
-  alarm_description   = "Redis에서 메모리 부족으로 키가 제거되고 있습니다"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = "1"
-  metric_name         = "Evictions"
-  namespace           = "AWS/ElastiCache"
-  period              = "300"
   statistic           = "Sum"
-  threshold           = "0"
+  threshold           = "2"   # 5분간 5XX 에러 2개 미만시 scale down 고려
   treat_missing_data  = "notBreaching"
 
   dimensions = {
-    CacheClusterId = var.elasticache_cluster_id
+    LoadBalancer = local.alb_arn_suffix
   }
 
   alarm_actions = [aws_sns_topic.critical_alerts.arn]
@@ -132,7 +51,8 @@ resource "aws_cloudwatch_metric_alarm" "redis_evictions" {
   tags = {
     Environment = var.environment
     Project     = var.project_name
-    Priority    = "Critical"
-    Service     = "ElastiCache"
+    Priority    = "Info"
+    Service     = "AutoScaling"
+    Purpose     = "ScaleDown"
   }
 }
