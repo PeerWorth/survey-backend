@@ -43,6 +43,6 @@ resource "google_bigquery_table" "user_profile_daily" {
     { name = "age", type = "INTEGER", mode = "NULLABLE" },
     { name = "save_rate", type = "INTEGER", mode = "NULLABLE" },
     { name = "has_car", type = "BOOLEAN", mode = "NULLABLE" },
-    { name = "monthly_rent", type = "BOOLEAN", mode = "NULLABLE" }
+    { name = "is_monthly_rent", type = "BOOLEAN", mode = "NULLABLE" }
   ])
 }

@@ -22,7 +22,7 @@ class UserRepository:
                 UserProfile.age,
                 UserProfile.save_rate,
                 UserProfile.has_car,
-                UserProfile.monthly_rent,
+                UserProfile.is_monthly_rent,
             )
             .join(UserProfile, UserProfile.salary_id == UserSalary.id)
             .join(Job, Job.id == UserSalary.job_id)
@@ -47,7 +47,7 @@ class UserRepository:
                 "age": row.age,
                 "save_rate": row.save_rate,
                 "has_car": row.has_car,
-                "monthly_rent": row.monthly_rent,
+                "is_monthly_rent": row.is_monthly_rent,
             }
             for row in result.all()
         ]

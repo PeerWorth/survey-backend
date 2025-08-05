@@ -80,6 +80,6 @@ class UserProfile(TimestampMixin, table=True):
     age: int | None = Field(nullable=True, description="나이")
     save_rate: int | None = Field(nullable=True, description="저축률")
     has_car: bool | None = Field(nullable=True, description="자동차 보유")
-    monthly_rent: bool | None = Field(nullable=True, description="웰세 여부")
+    is_monthly_rent: bool | None = Field(nullable=True, description="월세 여부")
 
     salary: UserSalary | None = Relationship(back_populates="profile")

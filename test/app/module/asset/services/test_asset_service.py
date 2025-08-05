@@ -187,7 +187,7 @@ class TestGetUserProfile:
             age=30,
             save_rate=40,
             has_car=True,
-            monthly_rent=False,
+            is_monthly_rent=False,
         )
         mock_user_profile_repo.get_by_salary_id.return_value = user_profile
 
@@ -296,7 +296,7 @@ class TestSaveUserProfile:
         assert saved_profile.age == 28
         assert saved_profile.save_rate == 45
         assert saved_profile.has_car is False
-        assert saved_profile.monthly_rent is True
+        assert saved_profile.is_monthly_rent is True
 
     @pytest.mark.asyncio
     async def test_save_user_profile_no_salary_raises_error(self, asset_service, mock_user_salary_repo):
@@ -366,4 +366,4 @@ class TestSaveUserProfile:
         assert second_call_profile.age == 28
         assert second_call_profile.save_rate == 45
         assert second_call_profile.has_car is True
-        assert second_call_profile.monthly_rent is False
+        assert second_call_profile.is_monthly_rent is False

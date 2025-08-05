@@ -70,14 +70,14 @@ class UserProfileFactory(BaseFactory):
         age: int = 27,
         save_rate: int = 50,
         has_car: bool = False,
-        monthly_rent: bool = True,
+        is_monthly_rent: bool = True,
     ) -> UserProfile:
         profile = UserProfile(
             salary_id=user_salary.id,
             age=age,
             save_rate=save_rate,
             has_car=has_car,
-            monthly_rent=monthly_rent,
+            is_monthly_rent=is_monthly_rent,
         )
         return await self._save_and_refresh(profile)
 
