@@ -24,14 +24,14 @@ class UserProfileRepository(BaseRepository):
             age=instance.age,
             save_rate=instance.save_rate,
             has_car=instance.has_car,
-            monthly_rent=instance.monthly_rent,
+            is_monthly_rent=instance.is_monthly_rent,
         )
 
         stmt = stmt.on_duplicate_key_update(
             age=stmt.inserted.age,
             save_rate=stmt.inserted.save_rate,
             has_car=stmt.inserted.has_car,
-            monthly_rent=stmt.inserted.monthly_rent,
+            is_monthly_rent=stmt.inserted.is_monthly_rent,
             updated_at=stmt.inserted.updated_at,
         )
 
