@@ -1,9 +1,9 @@
-from test.fixtures.base import BaseFactory
-
 import pytest
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.module.auth.model import User, UserConsent
+
+from .base import BaseFactory
 
 
 class UserFactory(BaseFactory):

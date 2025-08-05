@@ -1,4 +1,3 @@
-from test.fixtures.base import BaseFactory
 from uuid import UUID, uuid4
 
 import pytest
@@ -6,6 +5,8 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.module.asset.model import Job, JobGroup, SalaryStat, UserProfile, UserSalary
 from app.module.auth.model import User
+
+from .base import BaseFactory
 
 
 class JobGroupFactory(BaseFactory):

@@ -1,13 +1,5 @@
 import asyncio
 from os import getenv
-from test.fixtures.asset_fixture import job_factory  # noqa: F401
-from test.fixtures.asset_fixture import job_group_factory  # noqa: F401
-from test.fixtures.asset_fixture import salary_stat_factory  # noqa: F401
-from test.fixtures.asset_fixture import user_profile_factory  # noqa: F401
-from test.fixtures.asset_fixture import user_salary_factory  # noqa: F401
-from test.fixtures.auth_fixture import user_consent_factory  # noqa: F401
-from test.fixtures.auth_fixture import user_factory  # noqa: F401
-from test.fixtures.full_fixture import full_test_data_builder  # noqa: F401
 
 import pytest
 from dotenv import load_dotenv
@@ -26,6 +18,15 @@ from app.common.redis_repository.general_redis_repository import (
 )
 from database.dependency import get_mysql_session_router
 from main import app
+
+from .fixtures.asset_fixture import job_factory  # noqa: F401
+from .fixtures.asset_fixture import job_group_factory  # noqa: F401
+from .fixtures.asset_fixture import salary_stat_factory  # noqa: F401
+from .fixtures.asset_fixture import user_profile_factory  # noqa: F401
+from .fixtures.asset_fixture import user_salary_factory  # noqa: F401
+from .fixtures.auth_fixture import user_consent_factory  # noqa: F401
+from .fixtures.auth_fixture import user_factory  # noqa: F401
+from .fixtures.full_fixture import full_test_data_builder  # noqa: F401
 
 load_dotenv()
 

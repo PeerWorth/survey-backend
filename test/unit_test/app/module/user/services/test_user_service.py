@@ -14,7 +14,7 @@ from app.module.auth.errors.user_error import (
 from app.module.auth.model import User, UserConsent
 
 # Fixtures imported via pytest plugin system
-pytest_plugins = ["test.fixtures.auth_mock_fixture"]
+pytest_plugins = ["test.unit_test.fixtures.auth_mock_fixture"]
 
 
 class TestSaveUserWithMarketing:

@@ -10,7 +10,7 @@ from app.module.asset.errors.asset_error import NoMatchJobSalary, NoMatchUserSal
 from app.module.asset.model import Job, SalaryStat, UserProfile, UserSalary
 
 # Fixtures imported via pytest plugin system
-pytest_plugins = ["test.fixtures.asset_mock_fixture"]
+pytest_plugins = ["test.unit_test.fixtures.asset_mock_fixture"]
 
 
 class TestGetJobs:
