@@ -91,7 +91,7 @@ class TestDependencyOverrides:
         Then: 테스트용 Redis 클라이언트가 사용된다
         """
         # Given
-        from test.conftest import override_get_redis_pool
+        from ..conftest import override_get_redis_pool
 
         # When
         override_func = override_get_redis_pool(redis_client)
