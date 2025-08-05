@@ -153,19 +153,3 @@ cd aws_lambda && make deploy-handlers-bigquery-export-user-profile-daily
 ```bash
 cd aws_lambda && make deploy-all
 ```
-
-## 🔧 환경 변수
-
-필수 환경 변수:
-
-- `ENVIRONMENT`: dev/prod
-- `MYSQL_*`: 데이터베이스 연결 정보
-- `REDIS_*`: Redis 연결 정보
-- `AWS_*`: AWS 자격 증명
-- `TEST_*`: 테스트용 연결 정보
-
-## 📚 추가 문서
-
-- [테스트 작성 가이드라인](test/test_conftest/README.md)
-- [Claude AI 개발 가이드](CLAUDE.md)
-- [API 문서](http://localhost:8000/docs) (로컬 실행 시)

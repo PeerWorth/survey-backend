@@ -7,6 +7,8 @@ from sqlmodel import SQLModel
 
 from alembic import context
 from app.common.enums import EnvironmentType
+from app.module.asset.model import Job, JobGroup, SalaryStat, UserProfile, UserSalary  # noqa: F401
+from app.module.auth.model import User, UserConsent  # noqa: F401
 
 load_dotenv()
 
