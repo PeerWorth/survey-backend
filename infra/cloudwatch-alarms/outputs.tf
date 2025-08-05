@@ -9,40 +9,26 @@ output "sns_topic_warning_arn" {
 }
 
 output "critical_alarms" {
-  description = "List of critical alarm names"
+  description = "List of critical alarm names (Auto Scaling triggers)"
   value = [
-    aws_cloudwatch_metric_alarm.rds_connection_saturation.alarm_name,
-    aws_cloudwatch_metric_alarm.rds_low_storage.alarm_name,
-    try(aws_cloudwatch_metric_alarm.alb_no_healthy_targets[0].alarm_name, ""),
-    try(aws_cloudwatch_metric_alarm.redis_evictions[0].alarm_name, ""),
-    [for alarm in aws_cloudwatch_metric_alarm.ec2_status_check_failed : alarm.alarm_name]
+    aws_cloudwatch_metric_alarm.ec2_connection_pool_error.alarm_name,
+    aws_cloudwatch_metric_alarm.ec2_connection_pool_ok.alarm_name
   ]
 }
 
 output "warning_alarms" {
-  description = "List of warning alarm names"
+  description = "List of warning alarm names (Monitoring only)"
   value = [
-    try(aws_cloudwatch_metric_alarm.alb_high_5xx_errors[0].alarm_name, ""),
-    aws_cloudwatch_metric_alarm.rds_high_cpu.alarm_name,
-    try(aws_cloudwatch_metric_alarm.redis_high_memory[0].alarm_name, ""),
-    try(aws_cloudwatch_metric_alarm.alb_slow_response[0].alarm_name, ""),
-    [for alarm in aws_cloudwatch_metric_alarm.ec2_high_cpu : alarm.alarm_name]
+    aws_cloudwatch_metric_alarm.rds_connection_monitoring.alarm_name,
+    [for alarm in aws_cloudwatch_metric_alarm.ec2_cpu_monitoring : alarm.alarm_name]
   ]
 }
 
 output "total_alarm_count" {
   description = "Total number of alarms created"
   value = (
-    1 + # rds_connection_saturation
-    1 + # rds_low_storage
-    (var.alb_name != "" ? 1 : 0) + # alb_no_healthy_targets
-    (var.elasticache_cluster_id != "" ? 1 : 0) + # redis_evictions
-    length(data.aws_instances.app_instances.ids) + # ec2_status_check_failed
-
-    (var.alb_name != "" ? 1 : 0) + # alb_high_5xx_errors
-    1 + # rds_high_cpu
-    (var.elasticache_cluster_id != "" ? 1 : 0) + # redis_high_memory
-    (var.alb_name != "" ? 1 : 0) + # alb_slow_response
-    length(data.aws_instances.app_instances.ids) # ec2_high_cpu
+    2 + # connection pool alarms (scale up/down)
+    1 + # rds connection monitoring
+    length(data.aws_instances.app_instances.ids) # ec2 cpu monitoring
   )
 }
