@@ -41,7 +41,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "eb_deployments_lifecycle" {
 
     # 30일 후 이전 버전 삭제 (dev는 7일)
     noncurrent_version_expiration {
-      noncurrent_days = var.environment == "prod" ? 30 : 7
+      noncurrent_days = 7
     }
 
     # 불완전한 멀티파트 업로드 정리

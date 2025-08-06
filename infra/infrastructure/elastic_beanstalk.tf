@@ -141,7 +141,7 @@ resource "aws_elastic_beanstalk_application" "app" {
 
   appversion_lifecycle {
     service_role          = aws_iam_role.eb_service_role.arn
-    max_count             = var.environment == "prod" ? 20 : 5
+    max_count             = 5
     delete_source_from_s3 = true
   }
 }
@@ -338,14 +338,14 @@ resource "aws_elastic_beanstalk_environment" "environment" {
   # 데이터베이스 설정
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
-    name      = var.environment == "prod" ? "PROD_MYSQL_URL" : "DEV_MYSQL_URL"
+    name      = "DEV_MYSQL_URL"
     value     = "mysql+aiomysql://${var.db_username}:${var.db_password}@${aws_db_instance.mysql.endpoint}/${var.db_name}"
   }
 
   # Redis 설정
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
-    name      = var.environment == "prod" ? "PROD_REDIS_HOST" : "DEV_REDIS_HOST"
+    name      = "DEV_REDIS_HOST"
     value     = aws_elasticache_replication_group.redis.primary_endpoint_address
   }
 
