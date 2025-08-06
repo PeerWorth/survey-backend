@@ -121,3 +121,10 @@ variable "allowed_cidr_blocks" {
   type        = list(string)
   default     = ["0.0.0.0/0"]
 }
+
+# SSL 인증서
+variable "ssl_certificate_arn" {
+  description = "HTTPS 리스너에 사용할 SSL 인증서 ARN"
+  type        = string
+  default     = ""
+}
