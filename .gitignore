@@ -35,6 +35,10 @@ celerybeat-schedule.db
 *.tfstate.*
 .terraform/
 *.tfvars
+**/*.plan
+
+### Load Test ###
+test/**/report.html
 
 ### GCP KEY ###
 *key.json
