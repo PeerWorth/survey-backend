@@ -171,7 +171,7 @@ resource "aws_elastic_beanstalk_application" "app" {
 resource "aws_elastic_beanstalk_environment" "environment" {
   name                = var.eb_environment_name
   application         = aws_elastic_beanstalk_application.app.name
-  solution_stack_name = "64bit Amazon Linux 2023 v4.4.2 running Docker"
+  solution_stack_name = "64bit Amazon Linux 2023 v4.6.2 running Docker"
   tier                = "WebServer"
 
   # EC2 인스턴스 설정
@@ -292,12 +292,6 @@ resource "aws_elastic_beanstalk_environment" "environment" {
     namespace = "aws:elbv2:listener:default"
     name      = "Protocol"
     value     = "HTTP"
-  }
-
-  setting {
-    namespace = "aws:elbv2:listener:default"
-    name      = "Port"
-    value     = "80"
   }
 
   # 모니터링 설정 (Basic)
