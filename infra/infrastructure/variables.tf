@@ -128,3 +128,10 @@ variable "ssl_certificate_arn" {
   type        = string
   default     = ""
 }
+
+# 커스텀 도메인
+variable "custom_domain" {
+  description = "커스텀 도메인 (예: api.olass.co.kr)"
+  type        = string
+  default     = ""
+}
