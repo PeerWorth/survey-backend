@@ -78,25 +78,8 @@ resource "aws_elasticache_replication_group" "redis" {
   snapshot_retention_limit = var.environment == "prod" ? 5 : 0
   snapshot_window         = var.environment == "prod" ? "06:00-07:00" : null
 
-  # Logging (CloudWatch)
-  log_delivery_configuration {
-    destination      = aws_cloudwatch_log_group.redis_slow.name
-    destination_type = "cloudwatch-logs"
-    log_format       = "text"
-    log_type         = "slow-log"
-  }
 
   tags = {
     Name = "${var.project_name}-${var.environment}-valkey"
-  }
-}
-
-# CloudWatch Log Group for Valkey slow logs
-resource "aws_cloudwatch_log_group" "redis_slow" {
-  name              = "/aws/elasticache/valkey/${var.project_name}-${var.environment}"
-  retention_in_days = var.environment == "prod" ? 30 : 7
-
-  tags = {
-    Name = "${var.project_name}-${var.environment}-valkey-logs"
   }
 }

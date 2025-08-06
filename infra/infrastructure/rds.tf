@@ -98,7 +98,7 @@ resource "aws_db_instance" "mysql" {
   # Monitoring and logging (Enhanced Monitoring 비활성화)
   monitoring_interval = 0
   monitoring_role_arn = null
-  enabled_cloudwatch_logs_exports      = ["error", "general", "slowquery"]
+  enabled_cloudwatch_logs_exports      = []
   performance_insights_enabled         = var.environment == "prod" ? true : false
   performance_insights_retention_period = var.environment == "prod" ? 7 : null
 

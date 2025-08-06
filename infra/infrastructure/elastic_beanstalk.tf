@@ -59,27 +59,6 @@ resource "aws_iam_role_policy" "eb_s3_access" {
   })
 }
 
-# CloudWatch Logs 권한
-resource "aws_iam_role_policy" "eb_cloudwatch_logs" {
-  name = "${var.project_name}-${var.environment}-eb-cloudwatch-logs"
-  role = aws_iam_role.eb_ec2_role.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents",
-          "logs:DescribeLogStreams"
-        ]
-        Resource = "arn:aws:logs:*:*:*"
-      }
-    ]
-  })
-}
 
 # IAM Instance Profile
 resource "aws_iam_instance_profile" "eb_ec2_profile" {
@@ -314,24 +293,6 @@ resource "aws_elastic_beanstalk_environment" "environment" {
     value     = "email"
   }
 
-  # CloudWatch Logs 설정
-  setting {
-    namespace = "aws:elasticbeanstalk:cloudwatch:logs"
-    name      = "StreamLogs"
-    value     = "true"
-  }
-
-  setting {
-    namespace = "aws:elasticbeanstalk:cloudwatch:logs"
-    name      = "DeleteOnTerminate"
-    value     = "false"
-  }
-
-  setting {
-    namespace = "aws:elasticbeanstalk:cloudwatch:logs"
-    name      = "RetentionInDays"
-    value     = var.environment == "prod" ? "30" : "7"
-  }
 
   # 환경 변수 설정
   setting {
