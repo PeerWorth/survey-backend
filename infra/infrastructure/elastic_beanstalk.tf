@@ -245,39 +245,58 @@ resource "aws_elastic_beanstalk_environment" "environment" {
   setting {
     namespace = "aws:elasticbeanstalk:environment:process:default"
     name      = "HealthCheckInterval"
-    value     = "30"
+    value     = "15"
   }
 
   setting {
     namespace = "aws:elasticbeanstalk:environment:process:default"
     name      = "HealthCheckTimeout"
-    value     = "5"
+    value     = "10"
   }
 
   setting {
     namespace = "aws:elasticbeanstalk:environment:process:default"
     name      = "HealthyThresholdCount"
-    value     = "3"
+    value     = "2"
   }
 
   setting {
     namespace = "aws:elasticbeanstalk:environment:process:default"
     name      = "UnhealthyThresholdCount"
-    value     = "5"
+    value     = "10"
   }
 
-  # Application Load Balancer 리스너 설정
+  # Application Load Balancer 리스너 설정 (HTTP)
   setting {
     namespace = "aws:elbv2:listener:default"
     name      = "Protocol"
     value     = "HTTP"
   }
 
-  # 모니터링 설정 (Basic)
+  # HTTPS 리스너 설정
+  setting {
+    namespace = "aws:elbv2:listener:443"
+    name      = "Protocol"
+    value     = "HTTPS"
+  }
+
+  setting {
+    namespace = "aws:elbv2:listener:443"
+    name      = "DefaultProcess"
+    value     = "default"
+  }
+
+  setting {
+    namespace = "aws:elbv2:listener:443"
+    name      = "SSLCertificateArns"
+    value     = var.ssl_certificate_arn
+  }
+
+  # 모니터링 설정 (Enhanced)
   setting {
     namespace = "aws:elasticbeanstalk:healthreporting:system"
     name      = "SystemType"
-    value     = "basic"
+    value     = "enhanced"
   }
 
   # 알림 이메일 설정
