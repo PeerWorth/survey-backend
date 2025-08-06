@@ -24,6 +24,18 @@ data "aws_vpc" "olass" {
   id = var.vpc_id
 }
 
+# EB Environment에서 사용할 서브넷 (public 서브넷만)
+data "aws_subnets" "olass" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.olass.id]
+  }
+  filter {
+    name   = "tag:Name"
+    values = ["ollass-public-subnet-*"]
+  }
+}
+
 # 모든 서브넷 (일시적으로 사용)
 data "aws_subnets" "all" {
   filter {

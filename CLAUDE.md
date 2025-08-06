@@ -145,3 +145,104 @@ Lambda functions are organized by purpose with shared dependencies:
   - Database connection details
   - AWS credentials for Lambda functions
   - Redis connection settings
+
+## Infrastructure Directory (`infra/`)
+
+인프라스트럭처 코드는 Terraform으로 관리되며 다음과 같이 구성됩니다:
+
+### 1. **BigQuery** (`infra/bigquery/`)
+- BigQuery 데이터셋 및 테이블 정의
+- 개발/프로덕션 환경별 tfvars 파일
+- 주요 파일:
+  - `datasets.tf`: 데이터셋 구성
+  - `tables.tf`: 테이블 스키마 정의
+  - `terraform.dev.tfvars`, `terraform.prod.tfvars`: 환경별 설정
+
+### 2. **CloudWatch Alarms** (`infra/cloudwatch-alarms/`)
+- AWS CloudWatch 알람 구성
+- Discord 연동을 위한 Lambda 함수
+- 주요 파일:
+  - `alarms_critical.tf`: 중요 알람 정의
+  - `alarms_warning.tf`: 경고 알람 정의
+  - `lambda_discord.tf`: Discord 알림 Lambda
+  - `sns.tf`: SNS 토픽 구성
+
+### 3. **Infrastructure** (`infra/infrastructure/`)
+- 핵심 AWS 인프라 구성
+- 주요 리소스:
+  - `elastic_beanstalk.tf`: EB 애플리케이션 설정
+  - `elasticache.tf`: Redis 캐시 구성
+  - `rds.tf`: MySQL 데이터베이스 설정
+  - `s3.tf`: S3 버킷 구성
+  - `cloudwatch_logs.tf`: 로그 그룹 설정
+
+### Terraform 명령어
+```bash
+# 인프라 계획 확인
+cd infra/{module} && make plan-dev
+
+# 인프라 배포
+cd infra/{module} && make apply-dev
+
+# 상태 확인
+cd infra/{module} && terraform show
+```
+
+## Test Directory (`test/`)
+
+테스트는 load test와 unit test로 구분되어 있습니다:
+
+### 1. **Load Test** (`test/load_test/`)
+- Locust를 사용한 부하 테스트
+- 주요 파일:
+  - `locustfile.py`: 부하 테스트 시나리오 정의
+  - `report.html`: 테스트 결과 리포트
+  - `Makefile`: 테스트 실행 명령어
+
+### Load Test 명령어
+```bash
+# 부하 테스트 실행
+cd test/load_test && make run
+
+# 분산 부하 테스트
+cd test/load_test && make run-distributed
+```
+
+### 2. **Unit Test** (`test/unit_test/`)
+
+#### 테스트 구조
+- `app/`: 애플리케이션 모듈 테스트
+  - `module/asset/services/`: 자산 서비스 테스트
+  - `module/user/services/`: 사용자 서비스 테스트
+- `aws_lambda/`: Lambda 함수 테스트
+  - `handlers/bigquery/`: BigQuery export 테스트
+  - `handlers/email/`: 이메일 트리거 테스트
+
+#### Fixture 구성 (`test/unit_test/fixtures/`)
+- `base.py`: 기본 픽스처 클래스
+- `asset_fixture.py`, `asset_mock_fixture.py`: 자산 관련 픽스처
+- `auth_fixture.py`, `auth_mock_fixture.py`: 인증 관련 픽스처
+- `lambda_mock_fixture.py`: Lambda 테스트용 모킹
+- `full_fixture.py`: 통합 테스트용 전체 픽스처
+
+#### Test Conftest (`test/unit_test/test_conftest/`)
+- 픽스처 동작 검증을 위한 테스트
+- `test_database_fixtures.py`: DB 픽스처 테스트
+- `test_http_client_fixtures.py`: HTTP 클라이언트 테스트
+- `test_integration_fixtures.py`: 통합 픽스처 테스트
+- `test_redis_fixtures.py`: Redis 픽스처 테스트
+
+### Unit Test 명령어
+```bash
+# 전체 테스트 실행
+poetry run pytest test/unit_test/
+
+# 특정 모듈 테스트
+poetry run pytest test/unit_test/app/module/asset/
+
+# 픽스처 테스트
+poetry run pytest test/unit_test/test_conftest/
+
+# 커버리지 포함 실행
+poetry run pytest test/unit_test/ --cov=app --cov-report=html
+```

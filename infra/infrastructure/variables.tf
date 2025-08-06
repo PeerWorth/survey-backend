@@ -103,6 +103,12 @@ variable "redis_port" {
   default     = 6379
 }
 
+# Email
+variable "personal_email" {
+  description = "알림 이메일 주소"
+  type        = string
+}
+
 # 네트워킹
 variable "vpc_id" {
   description = "사용할 VPC ID"
