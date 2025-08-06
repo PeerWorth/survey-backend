@@ -99,8 +99,8 @@ resource "aws_db_instance" "mysql" {
   monitoring_interval = 0
   monitoring_role_arn = null
   enabled_cloudwatch_logs_exports      = []
-  performance_insights_enabled         = var.environment == "prod" ? true : false
-  performance_insights_retention_period = var.environment == "prod" ? 7 : null
+  performance_insights_enabled         = false
+  performance_insights_retention_period = null
 
   # Deletion protection
   deletion_protection = var.environment == "prod" ? true : false
