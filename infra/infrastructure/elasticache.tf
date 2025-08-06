@@ -75,8 +75,8 @@ resource "aws_elasticache_replication_group" "redis" {
 
   # Maintenance and backup
   maintenance_window       = "sun:05:00-sun:06:00"
-  snapshot_retention_limit = var.environment == "prod" ? 5 : 0
-  snapshot_window         = var.environment == "prod" ? "06:00-07:00" : null
+  snapshot_retention_limit = 0
+  snapshot_window         = null
 
 
   tags = {

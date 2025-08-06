@@ -1,15 +1,9 @@
-# Terraform Infrastructure Management Makefile
-
-.PHONY: help init plan-dev plan-prod apply-dev apply-prod destroy-dev destroy-prod validate format clean status
+.PHONY: init validate format plan-dev plan-prod apply-dev apply-prod destroy-dev destroy-prod status output eb-status rds-status redis-status logs-eb clean full-status
 
 # 기본 변수
 ENV ?= dev
 TF_VAR_FILE = terraform.$(ENV).tfvars
 
-help: ## 사용 가능한 명령어 목록
-	@echo "Infrastructure Management Commands:"
-	@echo ""
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 init: ## Terraform 초기화
 	terraform init
@@ -20,22 +14,28 @@ validate: ## Terraform 구성 검증
 format: ## Terraform 코드 포맷팅
 	terraform fmt -recursive
 
-plan-dev: ## 개발 환경 배포 계획 확인
+workspace-dev: ## Dev workspace로 전환
+	terraform workspace select dev || terraform workspace new dev
+
+workspace-prod: ## Prod workspace로 전환
+	terraform workspace select prod || terraform workspace new prod
+
+plan-dev: workspace-dev ## 개발 환경 배포 계획 확인
 	terraform plan -var-file=terraform.dev.tfvars
 
-plan-prod: ## 프로덕션 환경 배포 계획 확인 (신중히!)
+plan-prod: workspace-prod ## 프로덕션 환경 배포 계획 확인 (신중히!)
 	terraform plan -var-file=terraform.prod.tfvars
 
-apply-dev: ## 개발 환경 배포
+apply-dev: workspace-dev ## 개발 환경 배포
 	terraform apply -var-file=terraform.dev.tfvars
 
-apply-prod: ## 프로덕션 환경 배포 (수동 승인 필요)
+apply-prod: workspace-prod ## 프로덕션 환경 배포 (수동 승인 필요)
 	terraform apply -var-file=terraform.prod.tfvars
 
-destroy-dev: ## 개발 환경 삭제
+destroy-dev: workspace-dev ## 개발 환경 삭제
 	terraform destroy -var-file=terraform.dev.tfvars
 
-destroy-prod: ## 프로덕션 환경 삭제 (주의!)
+destroy-prod: workspace-prod ## 프로덕션 환경 삭제 (주의!)
 	@echo "⚠️  프로덕션 환경 삭제는 매우 위험합니다!"
 	@echo "정말로 삭제하시겠습니까? [y/N]"
 	@read -r response && [ "$$response" = "y" ] || exit 1
@@ -90,11 +90,6 @@ clean: ## Terraform 임시 파일 정리
 	rm -f terraform.tfstate.backup
 	rm -f .terraform.lock.hcl
 
-# 개발 환경 빠른 배포
-dev-deploy: init validate format plan-dev apply-dev ## 개발 환경 전체 배포 파이프라인
-
-# 프로덕션 환경 빠른 배포 (계획만)
-prod-plan: init validate format plan-prod ## 프로덕션 환경 배포 계획만 실행
 
 # 전체 상태 확인
 full-status: status eb-status rds-status redis-status ## 모든 리소스 상태 종합 확인

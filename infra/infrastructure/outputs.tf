@@ -11,12 +11,12 @@ output "eb_environment_name" {
 
 output "eb_environment_url" {
   description = "Elastic Beanstalk 환경 URL"
-  value       = aws_elastic_beanstalk_environment.env.endpoint_url
+  value       = aws_elastic_beanstalk_environment.environment.endpoint_url
 }
 
 output "eb_cname" {
   description = "Elastic Beanstalk CNAME"
-  value       = aws_elastic_beanstalk_environment.env.cname
+  value       = aws_elastic_beanstalk_environment.environment.cname
 }
 
 # RDS 출력
