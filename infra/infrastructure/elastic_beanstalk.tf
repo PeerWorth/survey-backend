@@ -273,23 +273,32 @@ resource "aws_elastic_beanstalk_environment" "environment" {
     value     = "HTTP"
   }
 
-  # HTTPS 리스너 설정
-  setting {
-    namespace = "aws:elbv2:listener:443"
-    name      = "Protocol"
-    value     = "HTTPS"
+  # HTTPS 리스너 설정 (SSL 인증서가 있을 때만)
+  dynamic "setting" {
+    for_each = var.ssl_certificate_arn != "" ? [1] : []
+    content {
+      namespace = "aws:elbv2:listener:443"
+      name      = "Protocol"
+      value     = "HTTPS"
+    }
   }
 
-  setting {
-    namespace = "aws:elbv2:listener:443"
-    name      = "DefaultProcess"
-    value     = "default"
+  dynamic "setting" {
+    for_each = var.ssl_certificate_arn != "" ? [1] : []
+    content {
+      namespace = "aws:elbv2:listener:443"
+      name      = "DefaultProcess"
+      value     = "default"
+    }
   }
 
-  setting {
-    namespace = "aws:elbv2:listener:443"
-    name      = "SSLCertificateArns"
-    value     = var.ssl_certificate_arn
+  dynamic "setting" {
+    for_each = var.ssl_certificate_arn != "" ? [1] : []
+    content {
+      namespace = "aws:elbv2:listener:443"
+      name      = "SSLCertificateArns"
+      value     = var.ssl_certificate_arn
+    }
   }
 
   # 모니터링 설정 (Enhanced)
@@ -324,6 +333,20 @@ resource "aws_elastic_beanstalk_environment" "environment" {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "AWS_REGION"
     value     = var.aws_region
+  }
+
+  # 데이터베이스 설정
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = var.environment == "prod" ? "PROD_MYSQL_URL" : "DEV_MYSQL_URL"
+    value     = "mysql+aiomysql://${var.db_username}:${var.db_password}@${aws_db_instance.mysql.endpoint}/${var.db_name}"
+  }
+
+  # Redis 설정
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = var.environment == "prod" ? "PROD_REDIS_HOST" : "DEV_REDIS_HOST"
+    value     = aws_elasticache_replication_group.redis.primary_endpoint_address
   }
 
   # Rolling deployments 설정
