@@ -6,9 +6,9 @@ resource "aws_security_group" "rds_sg" {
     from_port       = 3306
     to_port         = 3306
     protocol        = "tcp"
-    security_groups = var.environment == "dev" ? [] : [aws_security_group.eb_sg.id]
-    cidr_blocks     = var.environment == "dev" ? ["0.0.0.0/0"] : []
-    description     = var.environment == "dev" ? "MySQL access from anywhere (dev only)" : "MySQL access from Elastic Beanstalk"
+    security_groups = [aws_security_group.eb_sg.id]
+    cidr_blocks     = ["0.0.0.0/0"]
+    description     = "MySQL access from anywhere and Elastic Beanstalk"
   }
 
   egress {
@@ -74,7 +74,7 @@ resource "aws_db_instance" "mysql" {
   instance_class       = var.db_instance_class
   allocated_storage    = var.db_allocated_storage
   storage_type         = "gp2"
-  storage_encrypted    = var.environment == "prod" ? true : false
+  storage_encrypted    = false
 
   # Database settings
   db_name  = var.db_name
@@ -85,14 +85,14 @@ resource "aws_db_instance" "mysql" {
   # Network settings
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   db_subnet_group_name   = aws_db_subnet_group.mysql.name
-  publicly_accessible    = var.environment == "dev" ? true : false
+  publicly_accessible    = true
 
   # Parameter and option groups
   parameter_group_name = aws_db_parameter_group.mysql.name
 
   # Backup settings
-  backup_retention_period = var.environment == "prod" ? 7 : 0
-  backup_window          = var.environment == "prod" ? "03:00-04:00" : null
+  backup_retention_period = 0
+  backup_window          = null
   maintenance_window     = "sun:04:00-sun:05:00"
 
   # Monitoring and logging (Enhanced Monitoring 비활성화)
@@ -103,9 +103,9 @@ resource "aws_db_instance" "mysql" {
   performance_insights_retention_period = null
 
   # Deletion protection
-  deletion_protection = var.environment == "prod" ? true : false
-  skip_final_snapshot = var.environment == "dev" ? true : false
-  final_snapshot_identifier = var.environment == "prod" ? "${var.db_instance_identifier}-final-snapshot" : null
+  deletion_protection = false
+  skip_final_snapshot = true
+  final_snapshot_identifier = null
 
   # Auto minor version upgrade
   auto_minor_version_upgrade = true
