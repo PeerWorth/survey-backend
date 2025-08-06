@@ -12,4 +12,8 @@ deploy-handlers-email-trigger:
 deploy-handlers-email-onboarding:
 	$(MAKE) -C handlers/email/onboarding deploy
 
-deploy-all: deploy-shared deploy-dependencies-base deploy-handlers-email-onboarding deploy-handlers-email-trigger
+deploy-handlers-bigquery-export-user-profile-daily:
+	$(MAKE) -C handlers/bigquery/export_user_profile_daily deploy
+
+
+deploy-all: deploy-shared deploy-dependencies-base deploy-handlers-email-onboarding deploy-handlers-email-trigger deploy-handlers-bigquery-export-user-profile-daily

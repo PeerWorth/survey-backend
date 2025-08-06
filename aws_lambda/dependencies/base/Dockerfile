@@ -1,14 +1,13 @@
-FROM public.ecr.aws/lambda/python:3.11 AS builder
-
-RUN yum install -y zip && yum clean all
-
-RUN pip install --upgrade pip
+FROM public.ecr.aws/sam/build-python3.11:latest
 
 WORKDIR /var/task
 
 COPY requirements.txt .
 
-RUN mkdir -p python && \
-    pip install -r requirements.txt -t python/
+RUN pip install --upgrade pip && \
+    pip install \
+        --only-binary=:all: \
+        --target=python \
+        -r requirements.txt
 
 RUN zip -r layer.zip python/

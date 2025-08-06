@@ -47,7 +47,7 @@ class AssetService:
         if not user_salary:
             raise NoMatchUserSalary()
 
-        user_total_asset = int(user_salary.salary * (save_rate * 0.01) * 5 * 0.3)  # 예: 유저 연봉 * 저축률 * 5년 * 30%
+        user_total_asset = int(user_salary.salary * (save_rate * 0.01) * 5 * 0.3)  # 유저 연봉 * 저축률 * 5년 * 30%
 
         return CarRank.get_car_rank(user_total_asset)
 
@@ -81,15 +81,20 @@ class AssetService:
         data["salary"] = data["salary"] * SALARY_THOUSAND_WON
         user_salary = UserSalary(**data)
 
-        saved = await self.user_salary_repo.save(user_salary)
+        saved = await self.user_salary_repo.upsert(user_salary)
         return bool(saved)
 
     async def save_user_profile(self, user_profile_request: UserProfilePostRequest) -> bool:
         data = user_profile_request.model_dump()
         uid: uuid.UUID = data.pop("unique_id")
 
+        user_salary = await self.user_salary_repo.get_by_uuid(uid)
+        if not user_salary:
+            raise NoMatchUserSalary()
+
         data["salary_id"] = uid.bytes
 
         user_profile = UserProfile(**data)
-        saved = await self.user_profile_repo.save(user_profile)
+
+        saved = await self.user_profile_repo.upsert(user_profile)
         return bool(saved)

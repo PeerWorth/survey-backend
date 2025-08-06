@@ -1,9 +1,10 @@
 boto3
 jinja2
-mypy_boto3_ses
-mypy_boto3_sqs
 typing_extensions
+pydantic
 sqlmodel
 sqlalchemy[asyncio]
 aiomysql
 python-dotenv
+google-cloud-bigquery
+more-itertools

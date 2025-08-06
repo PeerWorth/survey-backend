@@ -20,6 +20,7 @@ Pipfile.lock
 env3.*
 .env
 *.env*
+.ebdeploy
 docs_build
 site_build
 venv
@@ -29,6 +30,18 @@ celerybeat-schedule.db
 # Created by https://www.toptal.com/developers/gitignore/api/flask
 # Edit at https://www.toptal.com/developers/gitignore?templates=flask
 
+### Terraform ###
+*.tfstate
+*.tfstate.*
+.terraform/
+*.tfvars
+**/*.plan
+
+### Load Test ###
+test/**/report.html
+
+### GCP KEY ###
+*key.json
 
 ### Lambda ###
 **/python/
