@@ -4,8 +4,8 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-source_db_url = "mysql+aiomysql://root:qwerasdf12@api.gaemischool.com:3306/assetmanagement"
-target_db_url = "mysql+aiomysql://root:qwerasdf12@olass-prod-mysql.chyk46oguma2.ap-northeast-2.rds.amazonaws.com:3306/assetmanagement"
+source_db_url = "mysql+aiomysql://username:password@host:port/assetmanagement"
+target_db_url = "mysql+aiomysql://username:password@host:port/assetmanagement"
 
 TABLES_TO_COPY = ["job", "job_group", "salary_stat"]
 
