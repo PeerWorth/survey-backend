@@ -24,10 +24,9 @@ resource "aws_security_group" "rds_sg" {
 }
 
 # DB Subnet Group
-# RDS는 Private 서브넷에만 배치 (보안)
 resource "aws_db_subnet_group" "mysql" {
   name       = "${var.project_name}-${var.environment}-db-subnet-group"
-  subnet_ids = data.aws_subnets.all.ids
+  subnet_ids = data.aws_subnets.public.ids
 
   tags = {
     Name = "${var.project_name}-${var.environment}-db-subnet-group"

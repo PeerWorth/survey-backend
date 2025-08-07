@@ -24,17 +24,6 @@ data "aws_vpc" "olass" {
   id = var.vpc_id
 }
 
-# EB Environment에서 사용할 서브넷 (public 서브넷만)
-data "aws_subnets" "olass" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.olass.id]
-  }
-  filter {
-    name   = "tag:Name"
-    values = ["ollass-public-subnet-*"]
-  }
-}
 
 # 모든 서브넷 (일시적으로 사용)
 data "aws_subnets" "all" {
@@ -44,7 +33,7 @@ data "aws_subnets" "all" {
   }
 }
 
-# Public 서브넷 (ALB, NAT Gateway용) - 서로 다른 AZ만
+# Public 서브넷 모음
 data "aws_subnets" "public" {
   filter {
     name   = "vpc-id"
@@ -62,7 +51,7 @@ locals {
   public_subnet_ids = slice(data.aws_subnets.public.ids, 0, min(2, length(data.aws_subnets.public.ids)))
 }
 
-# Private 서브넷 (RDS, ElastiCache, EC2 인스턴스용)
+# Private 서브넷 모음
 data "aws_subnets" "private" {
   filter {
     name   = "vpc-id"

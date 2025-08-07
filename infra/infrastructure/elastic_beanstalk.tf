@@ -338,14 +338,14 @@ resource "aws_elastic_beanstalk_environment" "environment" {
   # 데이터베이스 설정
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
-    name      = "DEV_MYSQL_URL"
+    name      = "${upper(var.environment)}_MYSQL_URL"
     value     = "mysql+aiomysql://${var.db_username}:${var.db_password}@${aws_db_instance.mysql.endpoint}/${var.db_name}"
   }
 
   # Redis 설정
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
-    name      = "DEV_REDIS_HOST"
+    name      = "${upper(var.environment)}_REDIS_HOST"
     value     = aws_elasticache_replication_group.redis.primary_endpoint_address
   }
 
@@ -378,13 +378,13 @@ resource "aws_elastic_beanstalk_environment" "environment" {
   setting {
     namespace = "aws:ec2:vpc"
     name      = "Subnets"
-    value     = join(",", data.aws_subnets.olass.ids)
+    value     = join(",", data.aws_subnets.public.ids)
   }
 
   setting {
     namespace = "aws:ec2:vpc"
     name      = "ELBSubnets"
-    value     = join(",", data.aws_subnets.olass.ids)
+    value     = join(",", data.aws_subnets.public.ids)
   }
 
   tags = {
