@@ -26,7 +26,7 @@ resource "aws_security_group" "redis_sg" {
 # ElastiCache는 Private 서브넷에만 배치 (보안)
 resource "aws_elasticache_subnet_group" "redis" {
   name       = "${var.project_name}-${var.environment}-redis-subnet-group"
-  subnet_ids = data.aws_subnets.all.ids
+  subnet_ids = data.aws_subnets.private.ids
 
   tags = {
     Name = "${var.project_name}-${var.environment}-redis-subnet-group"
