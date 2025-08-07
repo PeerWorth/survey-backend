@@ -4,8 +4,9 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-source_db_url = "mysql+aiomysql://root:qwerasdf12@api.gaemischool.com:3306/assetmanagement"
-target_db_url = "mysql+aiomysql://root:qwerasdf12@olass-prod-mysql.chyk46oguma2.ap-northeast-2.rds.amazonaws.com:3306/assetmanagement"
+# TEST 후 반드시 제거!!!!!
+source_db_url = ""
+target_db_url = ""
 
 TABLES_TO_COPY = ["job", "job_group", "salary_stat"]
 
@@ -19,6 +20,9 @@ async def copy_tables():
 
     async with source_session() as source_db:
         async with target_session() as target_db:
+            # 외래 키 체크 비활성화
+            await target_db.execute(text("SET FOREIGN_KEY_CHECKS = 0"))
+
             for table_name in TABLES_TO_COPY:
                 print(f"Copying table: {table_name}")
 
@@ -49,6 +53,10 @@ async def copy_tables():
                     print(f"{len(rows)}개의 행을 복사합니다. {table_name=}")
                 else:
                     print(f"데이터가 존재하지 않습니다. {table_name=}")
+
+            # 외래 키 체크 다시 활성화
+            await target_db.execute(text("SET FOREIGN_KEY_CHECKS = 1"))
+            await target_db.commit()
 
     await source_engine.dispose()
     await target_engine.dispose()
