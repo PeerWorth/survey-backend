@@ -1,208 +1,208 @@
-# name: Deploy to Dev Environment
+name: Deploy to Dev Environment
 
-# on:
-#   pull_request:
-#     types: [closed]
-#     branches:
-#       - dev
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - dev
 
-# jobs:
-#   deploy:
-#     if: github.event.pull_request.merged == true
-#     runs-on: ubuntu-latest
-#     env:
-#       GH_PAT: ${{ secrets.GH_PAT }}
+jobs:
+  deploy:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    env:
+      GH_PAT: ${{ secrets.GH_PAT }}
 
-#     steps:
-#       - name: Checkout Repository
-#         uses: actions/checkout@v4
-#         with:
-#           fetch-depth: 0
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-#       - name: Configure AWS Credentials
-#         uses: aws-actions/configure-aws-credentials@v4
-#         with:
-#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#           aws-region: ${{ secrets.AWS_REGION }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-#       - name: Bump version from latest tag (supports #major #minor)
-#         id: versioning
-#         env:
-#           GH_PAT: ${{ secrets.GH_PAT }}
-#         run: |
-#           # 먼저 인증된 remote로 덮어쓰기
-#           git config --global user.name "github-actions"
-#           git config --global user.email "github-actions@github.com"
+      - name: Bump version from latest tag (supports #major #minor)
+        id: versioning
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          # 먼저 인증된 remote로 덮어쓰기
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
 
-#           git config --unset-all http.https://github.com/.extraheader || true
+          git config --unset-all http.https://github.com/.extraheader || true
 
-#           git remote set-url origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}.git
+          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}.git
 
-#           # 이후 fetch는 PAT 인증 기반으로 수행됨
-#           git fetch --tags
+          # 이후 fetch는 PAT 인증 기반으로 수행됨
+          git fetch --tags
 
-#           # 최신 태그 추출 (dev 태그 필터링)
-#           LATEST_TAG=$(git tag -l "dev-v*" --sort=-version:refname | head -n 1)
+          # 최신 태그 추출 (dev 태그 필터링)
+          LATEST_TAG=$(git tag -l "dev-v*" --sort=-version:refname | head -n 1)
 
-#           # 태그가 없으면 초기값 설정
-#           if [ -z "$LATEST_TAG" ]; then
-#             echo "No existing dev tags found. Starting from dev-v0.0.0"
-#             LATEST_TAG="dev-v0.0.0"
-#           fi
+          # 태그가 없으면 초기값 설정
+          if [ -z "$LATEST_TAG" ]; then
+            echo "No existing dev tags found. Starting from dev-v0.0.0"
+            LATEST_TAG="dev-v0.0.0"
+          fi
 
-#           VERSION=${LATEST_TAG#dev-v}
-#           IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+          VERSION=${LATEST_TAG#dev-v}
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
 
-#           # 버전 구성요소가 비어있으면 0으로 설정
-#           MAJOR=${MAJOR:-0}
-#           MINOR=${MINOR:-0}
-#           PATCH=${PATCH:-0}
+          # 버전 구성요소가 비어있으면 0으로 설정
+          MAJOR=${MAJOR:-0}
+          MINOR=${MINOR:-0}
+          PATCH=${PATCH:-0}
 
-#           echo "📌 Current version: v$MAJOR.$MINOR.$PATCH"
+          echo "📌 Current version: v$MAJOR.$MINOR.$PATCH"
 
-#           # PR 제목에서 버전 증가 타입 확인
-#           PR_TITLE="${{ github.event.pull_request.title }}"
-#           echo "🔍 PR title: $PR_TITLE"
+          # PR 제목에서 버전 증가 타입 확인
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          echo "🔍 PR title: $PR_TITLE"
 
-#           # 증가 타입 판별
-#           if [[ "$PR_TITLE" == *"#major"* ]]; then
-#             MAJOR=$((MAJOR + 1))
-#             MINOR=0
-#             PATCH=0
-#             INCREMENT_TYPE="major"
-#           elif [[ "$PR_TITLE" == *"#minor"* ]]; then
-#             MINOR=$((MINOR + 1))
-#             PATCH=0
-#             INCREMENT_TYPE="minor"
-#           else
-#             PATCH=$((PATCH + 1))
-#             INCREMENT_TYPE="patch"
-#           fi
+          # 증가 타입 판별
+          if [[ "$PR_TITLE" == *"#major"* ]]; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+            INCREMENT_TYPE="major"
+          elif [[ "$PR_TITLE" == *"#minor"* ]]; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+            INCREMENT_TYPE="minor"
+          else
+            PATCH=$((PATCH + 1))
+            INCREMENT_TYPE="patch"
+          fi
 
-#           NEW_VERSION="dev-v$MAJOR.$MINOR.$PATCH"
-#           echo "🎯 Bumping $INCREMENT_TYPE version: $LATEST_TAG → $NEW_VERSION"
+          NEW_VERSION="dev-v$MAJOR.$MINOR.$PATCH"
+          echo "🎯 Bumping $INCREMENT_TYPE version: $LATEST_TAG → $NEW_VERSION"
 
-#           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-#           echo "new_tag=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "new_tag=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-#           # 태그 생성 및 푸시
-#           git tag $NEW_VERSION
-#           git push origin $NEW_VERSION
+          # 태그 생성 및 푸시
+          git tag $NEW_VERSION
+          git push origin $NEW_VERSION
 
-#       - name: Save .env
-#         run: echo "${{ secrets.DEV_ENV_CONTENTS }}" > .env
+      - name: Save .env
+        run: echo "${{ secrets.DEV_ENV_CONTENTS }}" > .env
 
-#       - name: Change files for dev environment
-#         run: cp docker-compose.dev.yml docker-compose.yml
+      - name: Change files for dev environment
+        run: cp docker-compose.dev.yml docker-compose.yml
 
-#       - name: Zip Application
-#         run: zip -r app.zip . -x ".git/*" ".github/*"
+      - name: Zip Application
+        run: zip -r app.zip . -x ".git/*" ".github/*"
 
-#       - name: Upload to S3
-#         run: |
-#           aws s3 cp app.zip s3://${{ secrets.DEV_EB_BUCKET }}/app-${{ env.NEW_VERSION }}.zip
+      - name: Upload to S3
+        run: |
+          aws s3 cp app.zip s3://${{ secrets.DEV_EB_BUCKET }}/app-${{ env.NEW_VERSION }}.zip
 
-#       - name: Verify EB environment is ready
-#         run: |
-#           echo "Verifying Elastic Beanstalk environment status..."
-#           ENV_STATUS=$(aws elasticbeanstalk describe-environments \
-#             --application-name ${{ secrets.DEV_EB_APPLICATION_NAME }} \
-#             --environment-names ${{ secrets.DEV_EB_ENV_NAME }} \
-#             --query "Environments[0].Status" \
-#             --output text 2>/dev/null || echo "NOT_FOUND")
+      - name: Verify EB environment is ready
+        run: |
+          echo "Verifying Elastic Beanstalk environment status..."
+          ENV_STATUS=$(aws elasticbeanstalk describe-environments \
+            --application-name ${{ secrets.DEV_EB_APPLICATION_NAME }} \
+            --environment-names ${{ secrets.DEV_EB_ENV_NAME }} \
+            --query "Environments[0].Status" \
+            --output text 2>/dev/null || echo "NOT_FOUND")
 
-#           if [ "$ENV_STATUS" = "NOT_FOUND" ] || [ "$ENV_STATUS" = "None" ]; then
-#             echo "❌ Environment not found. Please run 'make apply-dev' first."
-#             exit 1
-#           fi
+          if [ "$ENV_STATUS" = "NOT_FOUND" ] || [ "$ENV_STATUS" = "None" ]; then
+            echo "❌ Environment not found. Please run 'make apply-dev' first."
+            exit 1
+          fi
 
-#           echo "✅ Environment status: $ENV_STATUS"
+          echo "✅ Environment status: $ENV_STATUS"
 
-#       - name: Create new Elastic Beanstalk Application Version
-#         run: |
-#           aws elasticbeanstalk create-application-version \
-#             --application-name ${{ secrets.DEV_EB_APPLICATION_NAME }} \
-#             --version-label ${{ env.NEW_VERSION }} \
-#             --source-bundle S3Bucket=${{ secrets.DEV_EB_BUCKET }},S3Key=app-${{ env.NEW_VERSION }}.zip
+      - name: Create new Elastic Beanstalk Application Version
+        run: |
+          aws elasticbeanstalk create-application-version \
+            --application-name ${{ secrets.DEV_EB_APPLICATION_NAME }} \
+            --version-label ${{ env.NEW_VERSION }} \
+            --source-bundle S3Bucket=${{ secrets.DEV_EB_BUCKET }},S3Key=app-${{ env.NEW_VERSION }}.zip
 
-#       - name: Deploy to Elastic Beanstalk
-#         run: |
-#           echo "🚀 Deploying new version to Elastic Beanstalk..."
-#           aws elasticbeanstalk update-environment \
-#             --environment-name ${{ secrets.DEV_EB_ENV_NAME }} \
-#             --version-label ${{ env.NEW_VERSION }}
+      - name: Deploy to Elastic Beanstalk
+        run: |
+          echo "🚀 Deploying new version to Elastic Beanstalk..."
+          aws elasticbeanstalk update-environment \
+            --environment-name ${{ secrets.DEV_EB_ENV_NAME }} \
+            --version-label ${{ env.NEW_VERSION }}
 
-#       - name: Wait for deployment completion
-#         run: |
-#           echo "⏳ Waiting for deployment to complete..."
+      - name: Wait for deployment completion
+        run: |
+          echo "⏳ Waiting for deployment to complete..."
 
-#           # 최대 15분 대기 (60 * 15 = 900초)
-#           MAX_ATTEMPTS=60
-#           ATTEMPT=0
+          # 최대 15분 대기 (60 * 15 = 900초)
+          MAX_ATTEMPTS=60
+          ATTEMPT=0
 
-#           while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
-#             ENV_STATUS=$(aws elasticbeanstalk describe-environments \
-#               --environment-names ${{ secrets.DEV_EB_ENV_NAME }} \
-#               --query "Environments[0].Status" \
-#               --output text)
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            ENV_STATUS=$(aws elasticbeanstalk describe-environments \
+              --environment-names ${{ secrets.DEV_EB_ENV_NAME }} \
+              --query "Environments[0].Status" \
+              --output text)
 
-#             ENV_HEALTH=$(aws elasticbeanstalk describe-environments \
-#               --environment-names ${{ secrets.DEV_EB_ENV_NAME }} \
-#               --query "Environments[0].Health" \
-#               --output text)
+            ENV_HEALTH=$(aws elasticbeanstalk describe-environments \
+              --environment-names ${{ secrets.DEV_EB_ENV_NAME }} \
+              --query "Environments[0].Health" \
+              --output text)
 
-#             echo "Status: $ENV_STATUS, Health: $ENV_HEALTH"
+            echo "Status: $ENV_STATUS, Health: $ENV_HEALTH"
 
-#             # Ready 상태이고 Updating이 아니면 완료
-#             if [ "$ENV_STATUS" = "Ready" ]; then
-#               echo "✅ Deployment completed! Final health: $ENV_HEALTH"
-#               break
-#             fi
+            # Ready 상태이고 Updating이 아니면 완료
+            if [ "$ENV_STATUS" = "Ready" ]; then
+              echo "✅ Deployment completed! Final health: $ENV_HEALTH"
+              break
+            fi
 
-#             # 심각한 오류 상태면 중단
-#             if [ "$ENV_STATUS" = "Terminating" ] || [ "$ENV_STATUS" = "Terminated" ]; then
-#               echo "❌ Environment is in error state: $ENV_STATUS"
-#               exit 1
-#             fi
+            # 심각한 오류 상태면 중단
+            if [ "$ENV_STATUS" = "Terminating" ] || [ "$ENV_STATUS" = "Terminated" ]; then
+              echo "❌ Environment is in error state: $ENV_STATUS"
+              exit 1
+            fi
 
-#             ATTEMPT=$((ATTEMPT + 1))
-#             echo "   Attempt $ATTEMPT/$MAX_ATTEMPTS - Waiting 15s..."
-#             sleep 15
-#           done
+            ATTEMPT=$((ATTEMPT + 1))
+            echo "   Attempt $ATTEMPT/$MAX_ATTEMPTS - Waiting 15s..."
+            sleep 15
+          done
 
-#           if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
-#             echo "⚠️  Deployment timeout after 15 minutes, but this is normal for initial deployments"
-#             echo "   Check AWS Console for deployment progress"
-#           fi
+          if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+            echo "⚠️  Deployment timeout after 15 minutes, but this is normal for initial deployments"
+            echo "   Check AWS Console for deployment progress"
+          fi
 
-#       - name: Post deployment comment
-#         if: always()
-#         uses: actions/github-script@v7
-#         with:
-#           github-token: ${{ secrets.GH_PAT }}
-#           script: |
-#             const { owner, repo } = context.repo;
-#             const run_id = context.runId;
-#             const run_url = `https://github.com/${owner}/${repo}/actions/runs/${run_id}`;
+      - name: Post deployment comment
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GH_PAT }}
+          script: |
+            const { owner, repo } = context.repo;
+            const run_id = context.runId;
+            const run_url = `https://github.com/${owner}/${repo}/actions/runs/${run_id}`;
 
-#             const status = '${{ job.status }}';
-#             const emoji = status === 'success' ? '✅' : '❌';
-#             const message = status === 'success'
-#               ? `Dev deployment completed successfully! Version: ${{ env.NEW_VERSION }}`
-#               : 'Dev deployment failed!';
+            const status = '${{ job.status }}';
+            const emoji = status === 'success' ? '✅' : '❌';
+            const message = status === 'success'
+              ? `Dev deployment completed successfully! Version: ${{ env.NEW_VERSION }}`
+              : 'Dev deployment failed!';
 
-#             // PR 이벤트일 때만 코멘트 작성
-#             if (context.eventName === 'pull_request') {
-#               try {
-#                 await github.rest.issues.createComment({
-#                   owner,
-#                   repo,
-#                   issue_number: context.issue.number,
-#                   body: `${emoji} ${message}\n\n[View deployment logs](${run_url})`
-#                 });
-#               } catch (error) {
-#                 console.log('Failed to create comment:', error.message);
-#                 // 코멘트 실패는 무시하고 진행
-#               }
-#             }
+            // PR 이벤트일 때만 코멘트 작성
+            if (context.eventName === 'pull_request') {
+              try {
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: context.issue.number,
+                  body: `${emoji} ${message}\n\n[View deployment logs](${run_url})`
+                });
+              } catch (error) {
+                console.log('Failed to create comment:', error.message);
+                // 코멘트 실패는 무시하고 진행
+              }
+            }
