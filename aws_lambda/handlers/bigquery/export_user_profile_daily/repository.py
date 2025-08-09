@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from shared.model.asset_model import Job, JobGroup, UserProfile, UserSalary
 from shared.util.time import current_time_kst
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -27,13 +27,7 @@ class UserRepository:
             .join(UserProfile, UserProfile.salary_id == UserSalary.id)
             .join(Job, Job.id == UserSalary.job_id)
             .join(JobGroup, JobGroup.id == Job.group_id)
-            .where(
-                or_(
-                    func.date(UserProfile.created_at) == yesterday,
-                    func.date(UserProfile.updated_at) == yesterday,
-                    func.date(UserProfile.deleted_at) == yesterday,
-                )
-            )
+            .where(func.date(UserProfile.created_at) == yesterday)
         )
 
         result = await self.session.execute(stmt)
