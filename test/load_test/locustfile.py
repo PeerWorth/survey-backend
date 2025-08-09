@@ -1,4 +1,5 @@
 import random
+import time
 import uuid
 from typing import TYPE_CHECKING
 
@@ -26,6 +27,8 @@ class UserJourney(SequentialTaskSet):
                 self.jobs_data = data["data"]["items"]
                 self.selected_job = random.choice(self.jobs_data)
 
+        time.sleep(random.uniform(5, 10))
+
     @task
     def submit_salary(self):
         """2단계: 연봉 정보 제출 (UserSalaryPostRequest 스키마 준수)"""
@@ -43,6 +46,8 @@ class UserJourney(SequentialTaskSet):
         if response.status_code not in [200, 201]:
             print(f"❌ Salary failed: {response.status_code} - job_id: {self.selected_job['id']}")
 
+        time.sleep(random.uniform(10, 20))
+
     @task
     def submit_profile(self):
         """3단계: 프로필 정보 제출 (UserProfilePostRequest 스키마 준수)"""
@@ -58,12 +63,17 @@ class UserJourney(SequentialTaskSet):
         if response.status_code not in [200, 201]:
             print(f"❌ Profile failed: {response.status_code} - {response.text}")
 
+        time.sleep(random.uniform(10, 20))
+
     @task
     def submit_email(self):
         """4단계: 이메일 정보 제출 (같은 uniqueId 사용해야 함)"""
+        timestamp = int(time.time() * 1000000)
+        unique_email = f"test_{self.unique_id}_{timestamp}@example.com"
+
         payload = {
             "uniqueId": self.unique_id,
-            "email": f"test_{random.randint(1000, 9999)}@example.com",
+            "email": unique_email,
             "agree": random.choice([True, False]),
         }
 
