@@ -34,6 +34,9 @@ class UserService:
         credentials = self._get_credentials()
         client = bigquery.Client(credentials=credentials)
 
+        event_date = rows[0]["event_date"]
+        self._delete_existing_data(client, event_date)
+
         chunks = list(chunked(rows, MAX_ROWS_PER_REQUEST))
         total_success = 0
 
@@ -59,3 +62,16 @@ class UserService:
 
         logger.warning("Google Cloud 인증 정보가 설정되지 않았습니다. 기본 인증을 사용합니다.")
         return None
+
+    def _delete_existing_data(self, client: bigquery.Client, event_date: str):
+        delete_query = f"""
+            DELETE FROM {BIGQUERY_USER_TABLE}
+            WHERE event_date = '{event_date}'
+        """
+
+        try:
+            query_job = client.query(delete_query)
+            query_job.result()
+            logger.info(f"[중복 방지] {event_date} 날짜의 기존 데이터 삭제 완료: {query_job.num_dml_affected_rows}행")
+        except Exception as e:
+            logger.warning(f"[중복 방지] 기존 데이터 삭제 중 오류 (계속 진행): {e}")
