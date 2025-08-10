@@ -19,3 +19,9 @@ variable "region" {
   default     = "asia-northeast3"
   description = "GCP 리전 (예: asia-northeast3)"
 }
+
+variable "credentials_file" {
+  type        = string
+  default     = "olass-service-dev-key.json"
+  description = "GCP 서비스 계정 키 파일 경로"
+}

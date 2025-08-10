@@ -31,3 +31,16 @@ class EnvironmentType(StrEnum):
         if not host:
             raise ValueError(f"{key} 환경변수가 설정되지 않았습니다.")
         return host
+
+    @property
+    def bigquery_host_jsons(self) -> str:
+        """환경별 Bigquery 호스트"""
+        env_keys = {
+            EnvironmentType.DEV: "DEV_REDIS_HOST",
+            EnvironmentType.PROD: "PROD_REDIS_HOST",
+        }
+        key = env_keys[self]
+        host = getenv(key)
+        if not host:
+            raise ValueError(f"{key} 환경변수가 설정되지 않았습니다.")
+        return host

@@ -48,7 +48,7 @@ class UserService:
         logger.info(f"[BigQuery Insert 완료] 총 삽입 성공: {total_success} / 전체: {len(rows)}")
 
     def _get_credentials(self):
-        gcp_key_json = os.environ.get("BIGQUERY_CREDENTIALS_JSON")
+        gcp_key_json = os.environ.get("PROD_BIGQUERY_CREDENTIALS_JSON")
         if gcp_key_json:
             try:
                 key_data = json.loads(gcp_key_json)

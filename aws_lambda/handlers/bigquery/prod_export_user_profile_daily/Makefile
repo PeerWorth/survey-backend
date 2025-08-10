@@ -1,6 +1,6 @@
 include ../../../.env
 
-LAMBDA_NAME=olass-export-user-profile-daily
+LAMBDA_NAME=olass-export-prod-user-profile-daily
 ROLE_ARN=arn:aws:iam::$(AWS_ACCOUNT_ID):role/$(AWS_LAMBDA_ROLE_NAME)
 
 SHARED_LAYER_NAME=olass-shared-layer

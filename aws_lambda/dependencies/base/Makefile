@@ -16,7 +16,7 @@ deploy: zip
 	aws lambda publish-layer-version \
 	  --layer-name $(LAYER_NAME) \
 	  --zip-file fileb://layer.zip \
-	  --compatible-runtimes python3.11 \
+	  --compatible-runtimes python3.12 \
 	  --region $(REGION)
 
 clean:
