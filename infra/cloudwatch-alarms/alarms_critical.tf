@@ -38,7 +38,7 @@ resource "aws_cloudwatch_metric_alarm" "ec2_connection_pool_ok" {
   namespace           = "AWS/ApplicationELB"
   period              = "300"
   statistic           = "Sum"
-  threshold           = "2"   # 5분간 5XX 에러 2개 미만시 scale down 고려
+  threshold           = "2"
   treat_missing_data  = "notBreaching"
 
   dimensions = {

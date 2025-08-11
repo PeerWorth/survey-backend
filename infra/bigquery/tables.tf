@@ -3,6 +3,12 @@ resource "google_bigquery_table" "page_view_daily" {
   table_id             = "page_view_daily"
   project              = var.project_id
   deletion_protection  = false
+
+  time_partitioning {
+    type  = "DAY"
+    field = "event_date"
+  }
+
   schema               = jsonencode([
     { name = "event_date", type = "DATE", mode = "REQUIRED" },
     { name = "page_id", type = "STRING", mode = "NULLABLE" },
@@ -20,6 +26,12 @@ resource "google_bigquery_table" "event_click_daily" {
   table_id             = "event_click_daily"
   project              = var.project_id
   deletion_protection  = false
+
+  time_partitioning {
+    type  = "DAY"
+    field = "event_date"
+  }
+
   schema               = jsonencode([
     { name = "event_date", type = "DATE", mode = "REQUIRED" },
     { name = "event_name", type = "STRING", mode = "NULLABLE" },
