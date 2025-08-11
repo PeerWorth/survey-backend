@@ -51,9 +51,11 @@ resource "google_bigquery_table" "user_profile_daily" {
   deletion_protection  = false
   schema               = jsonencode([
     { name = "event_date", type = "DATE", mode = "REQUIRED" },
-    { name = "user_id", type = "INTEGER", mode = "REQUIRED" },
+    { name = "user_id", type = "INTEGER", mode = "NULLABLE" },
     { name = "job_group", type = "STRING", mode = "NULLABLE" },
     { name = "job", type = "STRING", mode = "NULLABLE" },
+    { name = "email", type = "STRING", mode = "NULLABLE" },
+    { name = "salary", type = "INTEGER", mode = "NULLABLE" },
     { name = "experience", type = "INTEGER", mode = "NULLABLE" },
     { name = "age", type = "INTEGER", mode = "NULLABLE" },
     { name = "save_rate", type = "INTEGER", mode = "NULLABLE" },
