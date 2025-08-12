@@ -1,12 +1,15 @@
 import asyncio
+import os
 
+from dotenv import load_dotenv
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-# TEST 후 반드시 제거!!!!!
-source_db_url = ""
-target_db_url = ""
+load_dotenv()
+
+source_db_url = os.getenv("DEV_MYSQL_URL")
+target_db_url = os.getenv("PROD_MYSQL_URL")
 
 TABLES_TO_COPY = ["job", "job_group", "salary_stat"]
 
