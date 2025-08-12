@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from redis.asyncio import ConnectionPool, Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.common.enums import REDIS_URL, EnvironmentType
+from app.common.enums import EnvironmentType
 from database.config import mysql_session_factory
 from database.constant import DB_POOL_SIZE, REDIS_SOCKET_CONNECTION_TIMEOUT_SECOND
 
@@ -19,7 +19,7 @@ try:
 except ValueError:
     raise ValueError(f"정의되지 않는 환경 변수 값입니다. {ENVIRONMENT=}")
 
-REDIS_HOST = REDIS_URL.from_env(env)
+REDIS_HOST = env.redis_host
 REDIS_PORT = int(getenv("REDIS_PORT", 6379))
 
 

@@ -182,32 +182,68 @@ resource "aws_elastic_beanstalk_environment" "environment" {
   setting {
     namespace = "aws:autoscaling:asg"
     name      = "MaxSize"
-    value     = var.eb_max_size
+    value     = "2"
   }
 
-  # 기본 Auto Scaling 정책 사용
+  # Target Group Request Count Per Target 기반 Auto Scaling 정책
   setting {
     namespace = "aws:autoscaling:trigger"
     name      = "MeasureName"
-    value     = "CPUUtilization"
+    value     = "RequestCount"
   }
 
   setting {
     namespace = "aws:autoscaling:trigger"
     name      = "Unit"
-    value     = "Percent"
+    value     = "Count"
+  }
+
+  setting {
+    namespace = "aws:autoscaling:trigger"
+    name      = "Statistic"
+    value     = "Sum"
   }
 
   setting {
     namespace = "aws:autoscaling:trigger"
     name      = "UpperThreshold"
-    value     = "80"
+    value     = "30"
   }
 
   setting {
     namespace = "aws:autoscaling:trigger"
     name      = "LowerThreshold"
-    value     = "20"
+    value     = "10"
+  }
+
+  setting {
+    namespace = "aws:autoscaling:trigger"
+    name      = "Period"
+    value     = "60"
+  }
+
+  setting {
+    namespace = "aws:autoscaling:trigger"
+    name      = "EvaluationPeriods"
+    value     = "1"
+  }
+
+  setting {
+    namespace = "aws:autoscaling:trigger"
+    name      = "UpperBreachScaleIncrement"
+    value     = "1"
+  }
+
+  setting {
+    namespace = "aws:autoscaling:trigger"
+    name      = "LowerBreachScaleIncrement"
+    value     = "-1"
+  }
+
+  setting {
+    namespace = "aws:autoscaling:trigger"
+    name      = "BreachDuration"
+    value     = "1"
   }
 
   # Load Balancer 설정

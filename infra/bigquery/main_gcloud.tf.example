@@ -9,8 +9,9 @@ terraform {
   }
 }
 
+# gcloud CLI 인증 사용하는 방식
 provider "google" {
   project = var.project_id
   region  = var.region
-  credentials = file(var.credentials_file)
+  # credentials 파일 없이 gcloud CLI 인증 사용
 }
