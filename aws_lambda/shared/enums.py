@@ -1,29 +1,15 @@
 from enum import StrEnum
 from os import getenv
 
-from app.common.logger.enums import LogTag
-
 
 class EnvironmentType(StrEnum):
-    LOCAL = "local"
     DEV = "dev"
     PROD = "prod"
-    TEST = "test"
-
-    @property
-    def log_level(self) -> str:
-        return LogTag.INFO.value if self == EnvironmentType.PROD else LogTag.DEBUG.value
-
-    @property
-    def log_env(self) -> str:
-        return "dev" if self in (EnvironmentType.LOCAL, EnvironmentType.TEST) else self.value
 
     @property
     def db_url(self) -> str:
         """환경별 데이터베이스 URL"""
         env_keys = {
-            EnvironmentType.LOCAL: "LOCAL_MYSQL_URL",
-            EnvironmentType.TEST: "LOCAL_MYSQL_URL",
             EnvironmentType.DEV: "DEV_MYSQL_URL",
             EnvironmentType.PROD: "PROD_MYSQL_URL",
         }
@@ -37,8 +23,19 @@ class EnvironmentType(StrEnum):
     def redis_host(self) -> str:
         """환경별 Redis 호스트"""
         env_keys = {
-            EnvironmentType.LOCAL: "LOCAL_REDIS_HOST",
-            EnvironmentType.TEST: "LOCAL_REDIS_HOST",
+            EnvironmentType.DEV: "DEV_REDIS_HOST",
+            EnvironmentType.PROD: "PROD_REDIS_HOST",
+        }
+        key = env_keys[self]
+        host = getenv(key)
+        if not host:
+            raise ValueError(f"{key} 환경변수가 설정되지 않았습니다.")
+        return host
+
+    @property
+    def bigquery_host_jsons(self) -> str:
+        """환경별 Bigquery 호스트"""
+        env_keys = {
             EnvironmentType.DEV: "DEV_REDIS_HOST",
             EnvironmentType.PROD: "PROD_REDIS_HOST",
         }

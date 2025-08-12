@@ -1,8 +1,9 @@
 from datetime import timedelta
 
 from shared.model.asset_model import Job, JobGroup, UserProfile, UserSalary
+from shared.model.auth_model import User
 from shared.util.time import current_time_kst
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -16,6 +17,8 @@ class UserRepository:
         stmt = (
             select(
                 UserSalary.user_id,
+                User.email,
+                UserSalary.salary,
                 JobGroup.name.label("job_group"),  # type: ignore[attr-defined]
                 Job.name.label("job"),  # type: ignore[attr-defined]
                 UserSalary.experience,
@@ -24,16 +27,12 @@ class UserRepository:
                 UserProfile.has_car,
                 UserProfile.is_monthly_rent,
             )
-            .join(UserProfile, UserProfile.salary_id == UserSalary.id)
-            .join(Job, Job.id == UserSalary.job_id)
-            .join(JobGroup, JobGroup.id == Job.group_id)
-            .where(
-                or_(
-                    func.date(UserProfile.created_at) == yesterday,
-                    func.date(UserProfile.updated_at) == yesterday,
-                    func.date(UserProfile.deleted_at) == yesterday,
-                )
-            )
+            .select_from(UserSalary)
+            .outerjoin(User, User.id == UserSalary.user_id)
+            .outerjoin(UserProfile, UserProfile.salary_id == UserSalary.id)
+            .outerjoin(Job, Job.id == UserSalary.job_id)
+            .outerjoin(JobGroup, JobGroup.id == Job.group_id)
+            .where(func.date(UserSalary.created_at) == yesterday)
         )
 
         result = await self.session.execute(stmt)
@@ -41,6 +40,8 @@ class UserRepository:
             {
                 "event_date": yesterday.isoformat(),
                 "user_id": row.user_id,
+                "email": row.email,
+                "salary": row.salary,
                 "job_group": row.job_group,
                 "job": row.job,
                 "experience": row.experience,

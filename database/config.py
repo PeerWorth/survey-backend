@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.common.enums import DB_URL, EnvironmentType
+from app.common.enums import EnvironmentType
 from database.constant import CONNECTION_TIMEOUT_SECOND, DB_MAX_OVERFLOW, DB_POOL_SIZE, POOL_TIMEOUT_SECOND
 
 load_dotenv()
@@ -22,7 +22,7 @@ try:
 except ValueError:
     raise ValueError(f"정의되지 않는 환경 변수 값입니다. {ENVIRONMENT=}")
 
-MYSQL_URL = DB_URL.from_env(env)
+MYSQL_URL = env.db_url
 
 mysql_engine = create_async_engine(
     MYSQL_URL,

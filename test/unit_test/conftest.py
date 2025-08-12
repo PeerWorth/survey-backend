@@ -10,7 +10,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import AsyncAdaptedQueuePool
 from sqlmodel import SQLModel
 
-from app.common.enums import REDIS_URL, EnvironmentType
+from app.common.enums import EnvironmentType
 from app.common.redis_repository.general_redis_repository import (
     GeneralRedisRepository,
     IntRedisRepository,
@@ -39,13 +39,12 @@ except ValueError:
     raise ValueError(f"정의되지 않는 환경 변수 값입니다. {ENVIRONMENT=}")
 
 
-REDIS_HOST = REDIS_URL.from_env(env)
+REDIS_HOST = env.redis_host
 REDIS_PORT = int(getenv("REDIS_PORT", 6379))
 
 TEST_DATABASE_URL = getenv("TEST_DATABASE_URL", None)
 
 
-# 테스트용 엔진은 각 함수마다 새로 생성하도록 함수로 변경
 def create_test_engine():
     return create_async_engine(
         TEST_DATABASE_URL,
@@ -55,9 +54,6 @@ def create_test_engine():
         max_overflow=0,
         echo=False,
     )
-
-
-# TestSessionLocal도 동적으로 생성하도록 변경
 
 
 @pytest.fixture(scope="function")

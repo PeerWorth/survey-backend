@@ -1,7 +1,10 @@
+import json
 import logging
+import os
 
 from constant import BIGQUERY_USER_TABLE, MAX_ROWS_PER_REQUEST
 from google.cloud import bigquery
+from google.oauth2 import service_account
 from more_itertools import chunked
 from repository import UserRepository
 from shared.db_config import get_session
@@ -28,7 +31,10 @@ class UserService:
             await self.session.close()
 
     def insert_to_bigquery(self, rows: list[dict]):
-        client = bigquery.Client()
+        credentials = self._get_credentials()
+        client = bigquery.Client(credentials=credentials)
+
+        event_date = rows[0]["event_date"]
 
         chunks = list(chunked(rows, MAX_ROWS_PER_REQUEST))
         total_success = 0
@@ -41,4 +47,17 @@ class UserService:
                 logger.info(f"[Chunk {idx + 1}/{len(chunks)}] {len(chunk)}개 행 삽입 성공")
                 total_success += len(chunk)
 
-        logger.info(f"[BigQuery Insert 완료] 총 삽입 성공: {total_success} / 전체: {len(rows)}")
+        logger.info(f"[BigQuery Insert 완료] {event_date} - 총 삽입 성공: {total_success} / 전체: {len(rows)}")
+
+    def _get_credentials(self):
+        gcp_key_json = os.environ.get("DEV_BIGQUERY_CREDENTIALS_JSON")
+        if gcp_key_json:
+            try:
+                key_data = json.loads(gcp_key_json)
+                return service_account.Credentials.from_service_account_info(key_data)
+            except json.JSONDecodeError as e:
+                logger.error(f"JSON 파싱 오류: {e}")
+                raise
+
+        logger.warning("Google Cloud 인증 정보가 설정되지 않았습니다. 기본 인증을 사용합니다.")
+        return None

@@ -30,6 +30,10 @@ celerybeat-schedule.db
 # Created by https://www.toptal.com/developers/gitignore/api/flask
 # Edit at https://www.toptal.com/developers/gitignore?templates=flask
 
+
+# 아무개 테스트용
+dummy_test.py
+
 ### Terraform ###
 *.tfstate
 *.tfstate.*
