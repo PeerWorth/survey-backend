@@ -29,10 +29,17 @@ class BaseResponseModel(BaseModel):
         return super().model_dump(by_alias=True, **kwargs)
 
 
-class SuccessResponse(BaseResponseModel):
-    code: int = Field(default=..., examples=[200])
+class SuccessGetResponse(BaseResponseModel):
+    code: int = Field(default=200, examples=[200])
     data: Any = Field(default={})
     message: str = Field(default="요청이 성공적으로 처리되었습니다.")
+    success: bool = Field(default=True)
+
+
+class SuccessPostResponse(BaseResponseModel):
+    code: int = Field(default=201, examples=[201])
+    data: Any = Field(default={})
+    message: str = Field(default="요청이 성공적으로 생성되었습니다.")
     success: bool = Field(default=True)
 
 

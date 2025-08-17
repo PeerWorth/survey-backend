@@ -1,6 +1,6 @@
 from pydantic import UUID4, BaseModel, ConfigDict, Field
 
-from app.common.schemas.base_schema import BaseRequestModel, SuccessResponse
+from app.common.schemas.base_schema import BaseRequestModel, SuccessGetResponse, SuccessPostResponse
 
 
 class JobItem(BaseModel):
@@ -23,7 +23,7 @@ class JobResponseData(BaseModel):
     items: list[JobItem]
 
 
-class JobSuccessResponse(SuccessResponse):
+class JobSuccessResponse(SuccessGetResponse):
     data: JobResponseData  # type: ignore[pydanticIssue]
 
 
@@ -57,7 +57,7 @@ class UserSalaryResponseData(BaseModel):
     )
 
 
-class UserSalaryResponse(SuccessResponse):
+class UserSalaryResponse(SuccessPostResponse):
     data: UserSalaryResponseData  # type: ignore[pydanticIssue]
 
 
@@ -92,5 +92,9 @@ class UserCarRankData(BaseModel):
     )
 
 
-class UserCarRankResponse(SuccessResponse):
+class UserCarRankResponse(SuccessPostResponse):
+    data: UserCarRankData  # type: ignore[pydanticIssue]
+
+
+class UserCarRankGetResponse(SuccessGetResponse):
     data: UserCarRankData  # type: ignore[pydanticIssue]
