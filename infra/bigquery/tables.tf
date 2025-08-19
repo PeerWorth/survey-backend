@@ -26,7 +26,9 @@ resource "google_bigquery_table" "user_journey_daily" {
     # UTM 파라미터 (첫 세션 기준)
     { name = "utm_source", type = "STRING", mode = "NULLABLE" },
     { name = "utm_medium", type = "STRING", mode = "NULLABLE" },
-    { name = "utm_campaign", type = "STRING", mode = "NULLABLE" }
+    { name = "utm_campaign", type = "STRING", mode = "NULLABLE" },
+    { name = "utm_content", type = "STRING", mode = "NULLABLE" },
+    { name = "utm_term", type = "STRING", mode = "NULLABLE" }
   ])
 }
 

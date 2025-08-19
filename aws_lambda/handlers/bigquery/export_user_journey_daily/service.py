@@ -42,7 +42,9 @@ class UserJourneyService:
         user_pseudo_id,
         traffic_source.source as utm_source,
         traffic_source.medium as utm_medium,
-        traffic_source.name as utm_campaign
+        traffic_source.name as utm_campaign,
+        (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'utm_content') as utm_content,
+        (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'utm_term') as utm_term
     FROM `{dataset}.events_{date}`
     WHERE user_pseudo_id IS NOT NULL
         AND traffic_source.source IS NOT NULL
@@ -111,6 +113,8 @@ class UserJourneyService:
                     "utm_source": row.utm_source,
                     "utm_medium": row.utm_medium,
                     "utm_campaign": row.utm_campaign,
+                    "utm_content": row.utm_content,
+                    "utm_term": row.utm_term,
                 }
 
             logger.info(f"UTM 데이터 {len(utm_data)}개 사용자 조회 완료")
@@ -134,6 +138,8 @@ class UserJourneyService:
                 "utm_source": utm_info.get("utm_source"),
                 "utm_medium": utm_info.get("utm_medium"),
                 "utm_campaign": utm_info.get("utm_campaign"),
+                "utm_content": utm_info.get("utm_content"),
+                "utm_term": utm_info.get("utm_term"),
             }
             enriched_events.append(enriched_event)
 

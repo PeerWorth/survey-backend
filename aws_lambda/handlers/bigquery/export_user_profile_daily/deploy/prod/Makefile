@@ -12,13 +12,13 @@ LAYER_SHARED_VERSION := $(shell aws lambda list-layer-versions \
 	--layer-name $(SHARED_LAYER_NAME) \
 	--region $(REGION) \
 	--query 'LayerVersions[0].Version' \
-	--output text)
+	--output text | head -n 1)
 
 LAYER_BASE_VERSION := $(shell aws lambda list-layer-versions \
 	--layer-name $(BASE_LAYER_NAME) \
 	--region $(REGION) \
 	--query 'LayerVersions[0].Version' \
-	--output text)
+	--output text | head -n 1)
 
 .PHONY: zip create update deploy
 
