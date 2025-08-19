@@ -1,6 +1,6 @@
 include ../../../../../.env
 
-LAMBDA_NAME=olass-export-prod-user-profile-daily
+LAMBDA_NAME=prod-bigquery-user-profile-daily
 ROLE_ARN=arn:aws:iam::$(AWS_ACCOUNT_ID):role/$(AWS_LAMBDA_ROLE_NAME)
 
 SHARED_LAYER_NAME=olass-shared-layer
@@ -38,7 +38,6 @@ create: zip
 		--memory-size 128 \
 		--region $(REGION) \
 		--architectures arm64 \
-		--environment Variables='{ENVIRONMENT=prod}' \
 		--layers \
 			arn:aws:lambda:$(REGION):$(AWS_ACCOUNT_ID):layer:$(BASE_LAYER_NAME):$(LAYER_BASE_VERSION) \
 			arn:aws:lambda:$(REGION):$(AWS_ACCOUNT_ID):layer:$(SHARED_LAYER_NAME):$(LAYER_SHARED_VERSION)
@@ -46,7 +45,6 @@ create: zip
 update: zip
 	aws lambda update-function-configuration \
 		--function-name $(LAMBDA_NAME) \
-		--environment Variables='{ENVIRONMENT=prod}' \
 		--layers \
 			arn:aws:lambda:$(REGION):$(AWS_ACCOUNT_ID):layer:$(BASE_LAYER_NAME):$(LAYER_BASE_VERSION) \
 			arn:aws:lambda:$(REGION):$(AWS_ACCOUNT_ID):layer:$(SHARED_LAYER_NAME):$(LAYER_SHARED_VERSION) \
