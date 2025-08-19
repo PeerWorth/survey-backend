@@ -16,8 +16,18 @@ class UserJourneyService:
     SELECT
         event_date,
         user_pseudo_id,
-        event_name,
-        COUNT(*) as event_count
+        COUNTIF(event_name = 'click_olass_intro') as intro_page,
+        COUNTIF(event_name = 'click_salary_comparison_job') as salary_job,
+        COUNTIF(event_name = 'click_salary_comparison_salary') as salary_salary,
+        COUNTIF(event_name = 'click_salary_comparison_experience') as salary_experience,
+        COUNTIF(event_name = 'click_salary_comparison_result') as salary_result,
+        COUNTIF(event_name = 'click_asset_test_question_age') as profile_age,
+        COUNTIF(event_name = 'click_asset_test_question_invest_ratio') as profile_invest_ratio,
+        COUNTIF(event_name = 'click_asset_test_question_own_car') as profile_car,
+        COUNTIF(event_name = 'click_asset_test_question_monthly_rent') as profile_rent,
+        COUNTIF(event_name = 'click_asset_test_result') as profile_result,
+        COUNTIF(event_name = 'click_agree_terms') as terms_agreed,
+        COUNTIF(event_name = 'click_share_result') as share_button
     FROM `{dataset}.events_{date}`
     WHERE user_pseudo_id IS NOT NULL
         AND event_name IN (
@@ -30,11 +40,11 @@ class UserJourneyService:
             'click_asset_test_question_invest_ratio',
             'click_asset_test_question_own_car',
             'click_asset_test_question_monthly_rent',
+            'click_asset_test_result',
             'click_agree_terms',
-            'click_share_button'
+            'click_share_result'
         )
-    GROUP BY event_date, user_pseudo_id, event_name
-    LIMIT 1000
+    GROUP BY event_date, user_pseudo_id
     """
 
     UTM_QUERY = """
@@ -51,16 +61,15 @@ class UserJourneyService:
     QUALIFY ROW_NUMBER() OVER (PARTITION BY user_pseudo_id ORDER BY event_timestamp ASC) = 1
     """
 
-    def __init__(self):
-        self.config = get_config()
-        self.client = self._get_bigquery_client()
-
-    def _get_bigquery_client(self):
-        credentials = self._get_credentials()
+    @staticmethod
+    def _get_bigquery_client():
+        credentials = UserJourneyService._get_credentials()
         return bigquery.Client(credentials=credentials)
 
-    def _get_credentials(self):
-        gcp_key_json = os.environ.get(self.config.CREDENTIALS_ENV_VAR)
+    @staticmethod
+    def _get_credentials():
+        config = get_config()
+        gcp_key_json = os.environ.get(config.CREDENTIALS_ENV_VAR)
         if gcp_key_json:
             try:
                 key_data = json.loads(gcp_key_json)
@@ -71,13 +80,13 @@ class UserJourneyService:
 
         return None
 
-    def get_ga4_events_yesterday(self):
+    @staticmethod
+    def get_ga4_events_yesterday(client, config):
         yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y%m%d")
-
-        query = self.EVENTS_QUERY.format(dataset=self.config.BIGQUERY_ANALYTICS_DATASET, date=yesterday)
+        query = UserJourneyService.EVENTS_QUERY.format(dataset=config.BIGQUERY_ANALYTICS_DATASET, date=yesterday)
 
         try:
-            events_job = self.client.query(query)
+            events_job = client.query(query)
             events_results = events_job.result()
 
             events = []
@@ -86,8 +95,18 @@ class UserJourneyService:
                     {
                         "event_date": str(row.event_date),
                         "user_pseudo_id": row.user_pseudo_id,
-                        "event_name": row.event_name,
-                        "event_count": row.event_count,
+                        "intro_page": row.intro_page,
+                        "salary_job": row.salary_job,
+                        "salary_salary": row.salary_salary,
+                        "salary_experience": row.salary_experience,
+                        "salary_result": row.salary_result,
+                        "profile_age": row.profile_age,
+                        "profile_invest_ratio": row.profile_invest_ratio,
+                        "profile_car": row.profile_car,
+                        "profile_rent": row.profile_rent,
+                        "profile_result": row.profile_result,
+                        "terms_agreed": row.terms_agreed,
+                        "share_button": row.share_button,
                     }
                 )
 
@@ -98,13 +117,13 @@ class UserJourneyService:
             logger.error(f"GA4 이벤트 로그를 가져오는 중 에러 발생: {e}")
             raise
 
-    def get_utm_data_yesterday(self):
+    @staticmethod
+    def get_utm_data_yesterday(client, config):
         yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y%m%d")
-
-        query = self.UTM_QUERY.format(dataset=self.config.BIGQUERY_ANALYTICS_DATASET, date=yesterday)
+        query = UserJourneyService.UTM_QUERY.format(dataset=config.BIGQUERY_ANALYTICS_DATASET, date=yesterday)
 
         try:
-            utm_job = self.client.query(query)
+            utm_job = client.query(query)
             utm_results = utm_job.result()
 
             utm_data = {}
@@ -124,9 +143,10 @@ class UserJourneyService:
             logger.error(f"UTM 데이터 조회 중 에러 발생: {e}")
             raise
 
-    def process_user_journey_data(self):
-        events = self.get_ga4_events_yesterday()
-        utm_data = self.get_utm_data_yesterday()
+    @staticmethod
+    def process_user_journey_data(client, config):
+        events = UserJourneyService.get_ga4_events_yesterday(client, config)
+        utm_data = UserJourneyService.get_utm_data_yesterday(client, config)
 
         enriched_events = []
         for event in events:
@@ -145,3 +165,64 @@ class UserJourneyService:
 
         logger.info(f"총 {len(enriched_events)}개 이벤트 처리 완료")
         return enriched_events
+
+    @staticmethod
+    def insert_to_bigquery(client, config, enriched_events):
+        table_id = f"{config.BIGQUERY_PROJECT_ID}.{config.BIGQUERY_DATAMART_DATASET}.user_journey_daily"
+
+        try:
+            rows_to_insert = []
+            for event in enriched_events:
+                row = {
+                    "event_date": event["event_date"],
+                    "user_pseudo_id": event["user_pseudo_id"],
+                    "intro_page": event["intro_page"],
+                    "salary_job": event["salary_job"],
+                    "salary_salary": event["salary_salary"],
+                    "salary_experience": event["salary_experience"],
+                    "salary_result": event["salary_result"],
+                    "profile_age": event["profile_age"],
+                    "profile_invest_ratio": event["profile_invest_ratio"],
+                    "profile_car": event["profile_car"],
+                    "profile_rent": event["profile_rent"],
+                    "profile_result": event["profile_result"],
+                    "terms_agreed": event["terms_agreed"],
+                    "share_button": event["share_button"],
+                    "utm_source": event["utm_source"],
+                    "utm_medium": event["utm_medium"],
+                    "utm_campaign": event["utm_campaign"],
+                    "utm_content": event["utm_content"],
+                    "utm_term": event["utm_term"],
+                }
+                rows_to_insert.append(row)
+
+            table = client.get_table(table_id)
+            errors = client.insert_rows_json(table, rows_to_insert)
+
+            if errors:
+                logger.error(f"BigQuery 삽입 중 에러 발생: {errors}")
+                raise Exception(f"BigQuery insertion failed: {errors}")
+
+            logger.info(f"BigQuery에 {len(rows_to_insert)}개 행 삽입 완료")
+
+        except Exception as e:
+            logger.error(f"BigQuery 테이블 삽입 중 에러 발생: {e}")
+            raise
+
+    @staticmethod
+    def run_etl_pipeline() -> int:
+        logger.info("GA4 to BigQuery ETL 파이프라인 시작")
+
+        # 한 번만 생성하여 재사용
+        config = get_config()
+        client = UserJourneyService._get_bigquery_client()
+
+        enriched_events = UserJourneyService.process_user_journey_data(client, config)
+        if not enriched_events:
+            logger.info("처리할 데이터가 없습니다")
+            return 0
+
+        UserJourneyService.insert_to_bigquery(client, config, enriched_events)
+
+        logger.info("ETL 파이프라인 완료")
+        return len(enriched_events)

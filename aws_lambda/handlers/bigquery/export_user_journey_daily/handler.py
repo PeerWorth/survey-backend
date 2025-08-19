@@ -22,18 +22,12 @@ def lambda_handler(event, context):
 
 async def _lambda_handler(event, context):
     try:
-        service = UserJourneyService()
+        total_send = UserJourneyService.run_etl_pipeline()
 
-        events = service.process_user_journey_data()
-
-        if not events:
-            logger.info("오늘 날짜의 이벤트가 존재하지 않습니다.")
-            return
-
-        logger.info(f"총 {len(events)}개의 GA4 이벤트를 처리하였습니다.")
+        logger.info(f"ETL 파이프라인 완료 - 처리된 이벤트: {total_send}개")
 
         return
 
     except Exception as e:
-        logger.error(f"오류 발생: {e}")
+        logger.error(f"ETL 파이프라인 오류 발생: {e}")
         return
