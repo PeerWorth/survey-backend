@@ -1,46 +1,34 @@
-resource "google_bigquery_table" "page_view_daily" {
+resource "google_bigquery_table" "user_journey_daily" {
   dataset_id           = google_bigquery_dataset.datamart.dataset_id
-  table_id             = "page_view_daily"
+  table_id             = "user_journey_daily"
   project              = var.project_id
   deletion_protection  = false
 
-  time_partitioning {
-    type  = "DAY"
-    field = "event_date"
-  }
-
   schema               = jsonencode([
+    # 기본 필드
     { name = "event_date", type = "DATE", mode = "REQUIRED" },
-    { name = "page_id", type = "STRING", mode = "NULLABLE" },
-    { name = "page_title", type = "STRING", mode = "NULLABLE" },
+    { name = "user_pseudo_id", type = "STRING", mode = "REQUIRED" },
+
+    # 페이지뷰 카운트
+    { name = "intro_page", type = "INTEGER", mode = "NULLABLE" },
+    { name = "salary_job", type = "INTEGER", mode = "NULLABLE" },
+    { name = "salary_experience", type = "INTEGER", mode = "NULLABLE" },
+    { name = "salary_salary", type = "INTEGER", mode = "NULLABLE" },
+    { name = "salary_result", type = "INTEGER", mode = "NULLABLE" },
+    { name = "profile_age", type = "INTEGER", mode = "NULLABLE" },
+    { name = "profile_invest_ratio", type = "INTEGER", mode = "NULLABLE" },
+    { name = "profile_car", type = "INTEGER", mode = "NULLABLE" },
+    { name = "profile_rent", type = "INTEGER", mode = "NULLABLE" },
+    { name = "transport_grade_result", type = "INTEGER", mode = "NULLABLE" },
+
+    # 핵심 액션 카운트
+    { name = "terms_agreed", type = "INTEGER", mode = "NULLABLE" },
+    { name = "share_button", type = "INTEGER", mode = "NULLABLE" },
+
+    # UTM 파라미터 (첫 세션 기준)
     { name = "utm_source", type = "STRING", mode = "NULLABLE" },
     { name = "utm_medium", type = "STRING", mode = "NULLABLE" },
-    { name = "utm_campagin", type = "STRING", mode = "NULLABLE" },
-    { name = "view_count", type = "INTEGER", mode = "NULLABLE" },
-    { name = "user_count", type = "INTEGER", mode = "NULLABLE" }
-  ])
-}
-
-resource "google_bigquery_table" "event_click_daily" {
-  dataset_id           = google_bigquery_dataset.datamart.dataset_id
-  table_id             = "event_click_daily"
-  project              = var.project_id
-  deletion_protection  = false
-
-  time_partitioning {
-    type  = "DAY"
-    field = "event_date"
-  }
-
-  schema               = jsonencode([
-    { name = "event_date", type = "DATE", mode = "REQUIRED" },
-    { name = "event_name", type = "STRING", mode = "NULLABLE" },
-    { name = "event_label", type = "STRING", mode = "NULLABLE" },
-    { name = "utm_source", type = "STRING", mode = "NULLABLE" },
-    { name = "utm_medium", type = "STRING", mode = "NULLABLE" },
-    { name = "utm_campagin", type = "STRING", mode = "NULLABLE" },
-    { name = "click_count", type = "INTEGER", mode = "NULLABLE" },
-    { name = "user_count", type = "INTEGER", mode = "NULLABLE" }
+    { name = "utm_campaign", type = "STRING", mode = "NULLABLE" }
   ])
 }
 

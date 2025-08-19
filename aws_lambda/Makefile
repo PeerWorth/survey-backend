@@ -13,10 +13,10 @@ deploy-handlers-email-onboarding:
 	$(MAKE) -C handlers/email/onboarding deploy
 
 deploy-handlers-bigquery-export-dev-user-profile-daily:
-	$(MAKE) -C handlers/bigquery/dev_export_user_profile_daily deploy
+	$(MAKE) -C handlers/bigquery/export_user_profile_daily/deploy/dev deploy
 
 deploy-handlers-bigquery-export-prod-user-profile-daily:
-	$(MAKE) -C handlers/bigquery/prod_export_user_profile_daily deploy
+	$(MAKE) -C handlers/bigquery/export_user_profile_daily/deploy/prod deploy
 
 
 deploy-all: deploy-shared deploy-dependencies-base deploy-handlers-email-onboarding deploy-handlers-email-trigger deploy-handlers-bigquery-export-dev-user-profile-daily deploy-handlers-bigquery-export-prod-user-profile-daily

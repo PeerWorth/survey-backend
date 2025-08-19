@@ -1,4 +1,4 @@
-include ../../../.env
+include ../../../../../.env
 
 LAMBDA_NAME=olass-export-prod-user-profile-daily
 ROLE_ARN=arn:aws:iam::$(AWS_ACCOUNT_ID):role/$(AWS_LAMBDA_ROLE_NAME)
@@ -23,8 +23,9 @@ LAYER_BASE_VERSION := $(shell aws lambda list-layer-versions \
 .PHONY: zip create update deploy
 
 zip:
-	rm -f $(HANDLER_ZIP)
-	zip -r $(HANDLER_ZIP) .
+	cd ../../ && rm -f $(HANDLER_ZIP)
+	cd ../../ && zip -r $(HANDLER_ZIP) . -x "deploy/*"
+	mv ../../$(HANDLER_ZIP) .
 
 create: zip
 	aws lambda create-function \
@@ -37,6 +38,7 @@ create: zip
 		--memory-size 128 \
 		--region $(REGION) \
 		--architectures arm64 \
+		--environment Variables='{ENVIRONMENT=prod}' \
 		--layers \
 			arn:aws:lambda:$(REGION):$(AWS_ACCOUNT_ID):layer:$(BASE_LAYER_NAME):$(LAYER_BASE_VERSION) \
 			arn:aws:lambda:$(REGION):$(AWS_ACCOUNT_ID):layer:$(SHARED_LAYER_NAME):$(LAYER_SHARED_VERSION)
@@ -44,6 +46,7 @@ create: zip
 update: zip
 	aws lambda update-function-configuration \
 		--function-name $(LAMBDA_NAME) \
+		--environment Variables='{ENVIRONMENT=prod}' \
 		--layers \
 			arn:aws:lambda:$(REGION):$(AWS_ACCOUNT_ID):layer:$(BASE_LAYER_NAME):$(LAYER_BASE_VERSION) \
 			arn:aws:lambda:$(REGION):$(AWS_ACCOUNT_ID):layer:$(SHARED_LAYER_NAME):$(LAYER_SHARED_VERSION) \
