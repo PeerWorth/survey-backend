@@ -1,6 +1,6 @@
-include ../../../.env
+include ../../../../../.env
 
-LAMBDA_NAME=olass-export-prod-user-profile-daily
+LAMBDA_NAME=dev-bigquery-user-profile-daily
 ROLE_ARN=arn:aws:iam::$(AWS_ACCOUNT_ID):role/$(AWS_LAMBDA_ROLE_NAME)
 
 SHARED_LAYER_NAME=olass-shared-layer
@@ -23,8 +23,9 @@ LAYER_BASE_VERSION := $(shell aws lambda list-layer-versions \
 .PHONY: zip create update deploy
 
 zip:
-	rm -f $(HANDLER_ZIP)
-	zip -r $(HANDLER_ZIP) .
+	cd ../../ && rm -f $(HANDLER_ZIP)
+	cd ../../ && zip -r $(HANDLER_ZIP) . -x "deploy/*"
+	mv ../../$(HANDLER_ZIP) .
 
 create: zip
 	aws lambda create-function \
