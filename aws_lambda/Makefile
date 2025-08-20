@@ -1,5 +1,7 @@
 .PHONY: deploy-shared deploy-dependencies-base deploy-dev-all deploy-prod-all deploy-all
 
+export AWS_PAGER=
+
 # 공통 의존성
 deploy-shared:
 	$(MAKE) -C shared deploy
