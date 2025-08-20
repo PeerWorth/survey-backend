@@ -14,18 +14,16 @@ resource "google_bigquery_table" "user_journey_daily" {
     { name = "salary_job", type = "INTEGER", mode = "NULLABLE" },
     { name = "salary_experience", type = "INTEGER", mode = "NULLABLE" },
     { name = "salary_salary", type = "INTEGER", mode = "NULLABLE" },
-    { name = "salary_result", type = "INTEGER", mode = "NULLABLE" },
     { name = "profile_age", type = "INTEGER", mode = "NULLABLE" },
     { name = "profile_invest_ratio", type = "INTEGER", mode = "NULLABLE" },
     { name = "profile_car", type = "INTEGER", mode = "NULLABLE" },
     { name = "profile_rent", type = "INTEGER", mode = "NULLABLE" },
-    { name = "profile_result", type = "INTEGER", mode = "NULLABLE" },
 
     # 핵심 액션 카운트
     { name = "terms_agreed", type = "INTEGER", mode = "NULLABLE" },
     { name = "share_button", type = "INTEGER", mode = "NULLABLE" },
 
-    # UTM 파라미터 (첫 세션 기준)
+    # UTM 파라미터
     { name = "utm_source", type = "STRING", mode = "NULLABLE" },
     { name = "utm_medium", type = "STRING", mode = "NULLABLE" },
     { name = "utm_campaign", type = "STRING", mode = "NULLABLE" },

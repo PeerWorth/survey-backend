@@ -20,12 +20,10 @@ class UserJourneyService:
         COUNTIF(event_name = 'click_salary_comparison_job') as salary_job,
         COUNTIF(event_name = 'click_salary_comparison_salary') as salary_salary,
         COUNTIF(event_name = 'click_salary_comparison_experience') as salary_experience,
-        COUNTIF(event_name = 'click_salary_comparison_result') as salary_result,
         COUNTIF(event_name = 'click_asset_test_question_age') as profile_age,
         COUNTIF(event_name = 'click_asset_test_question_invest_ratio') as profile_invest_ratio,
         COUNTIF(event_name = 'click_asset_test_question_own_car') as profile_car,
         COUNTIF(event_name = 'click_asset_test_question_monthly_rent') as profile_rent,
-        COUNTIF(event_name = 'click_asset_test_result') as profile_result,
         COUNTIF(event_name = 'click_agree_terms') as terms_agreed,
         COUNTIF(event_name = 'click_share_result') as share_button
     FROM `{dataset}.events_{date}`
@@ -35,12 +33,10 @@ class UserJourneyService:
             'click_salary_comparison_job',
             'click_salary_comparison_salary',
             'click_salary_comparison_experience',
-            'click_salary_comparison_result',
             'click_asset_test_question_age',
             'click_asset_test_question_invest_ratio',
             'click_asset_test_question_own_car',
             'click_asset_test_question_monthly_rent',
-            'click_asset_test_result',
             'click_agree_terms',
             'click_share_result'
         )
@@ -50,14 +46,14 @@ class UserJourneyService:
     UTM_QUERY = """
     SELECT
         user_pseudo_id,
-        traffic_source.source as utm_source,
-        traffic_source.medium as utm_medium,
-        traffic_source.name as utm_campaign,
-        (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'utm_content') as utm_content,
-        (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'utm_term') as utm_term
+        collected_traffic_source.manual_source as utm_source,
+        collected_traffic_source.manual_medium as utm_medium,
+        collected_traffic_source.manual_campaign_name as utm_campaign,
+        collected_traffic_source.manual_content as utm_content,
+        collected_traffic_source.manual_term as utm_term
     FROM `{dataset}.events_{date}`
     WHERE user_pseudo_id IS NOT NULL
-        AND traffic_source.source IS NOT NULL
+        AND collected_traffic_source.manual_source IS NOT NULL
     QUALIFY ROW_NUMBER() OVER (PARTITION BY user_pseudo_id ORDER BY event_timestamp ASC) = 1
     """
 
@@ -83,6 +79,7 @@ class UserJourneyService:
     @staticmethod
     def get_ga4_events_yesterday(client, config):
         yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y%m%d")
+
         query = UserJourneyService.EVENTS_QUERY.format(dataset=config.BIGQUERY_ANALYTICS_DATASET, date=yesterday)
 
         try:
@@ -91,20 +88,22 @@ class UserJourneyService:
 
             events = []
             for row in events_results:
+                event_date_str = str(row.event_date)
+                date_obj = datetime.strptime(event_date_str, "%Y%m%d")
+                formatted_date = date_obj.strftime("%Y-%m-%d")
+
                 events.append(
                     {
-                        "event_date": str(row.event_date),
+                        "event_date": formatted_date,
                         "user_pseudo_id": row.user_pseudo_id,
                         "intro_page": row.intro_page,
                         "salary_job": row.salary_job,
                         "salary_salary": row.salary_salary,
                         "salary_experience": row.salary_experience,
-                        "salary_result": row.salary_result,
                         "profile_age": row.profile_age,
                         "profile_invest_ratio": row.profile_invest_ratio,
                         "profile_car": row.profile_car,
                         "profile_rent": row.profile_rent,
-                        "profile_result": row.profile_result,
                         "terms_agreed": row.terms_agreed,
                         "share_button": row.share_button,
                     }
@@ -120,6 +119,7 @@ class UserJourneyService:
     @staticmethod
     def get_utm_data_yesterday(client, config):
         yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y%m%d")
+
         query = UserJourneyService.UTM_QUERY.format(dataset=config.BIGQUERY_ANALYTICS_DATASET, date=yesterday)
 
         try:
@@ -180,12 +180,10 @@ class UserJourneyService:
                     "salary_job": event["salary_job"],
                     "salary_salary": event["salary_salary"],
                     "salary_experience": event["salary_experience"],
-                    "salary_result": event["salary_result"],
                     "profile_age": event["profile_age"],
                     "profile_invest_ratio": event["profile_invest_ratio"],
                     "profile_car": event["profile_car"],
                     "profile_rent": event["profile_rent"],
-                    "profile_result": event["profile_result"],
                     "terms_agreed": event["terms_agreed"],
                     "share_button": event["share_button"],
                     "utm_source": event["utm_source"],
@@ -213,7 +211,6 @@ class UserJourneyService:
     def run_etl_pipeline() -> int:
         logger.info("GA4 to BigQuery ETL 파이프라인 시작")
 
-        # 한 번만 생성하여 재사용
         config = get_config()
         client = UserJourneyService._get_bigquery_client()
 
