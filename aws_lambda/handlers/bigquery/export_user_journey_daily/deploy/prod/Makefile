@@ -1,6 +1,6 @@
-include ../../../.env
+include ../../../../../.env
 
-LAMBDA_NAME=olass-export-prod-user-profile-daily
+LAMBDA_NAME=prod-bigquery-user-journey-daily
 ROLE_ARN=arn:aws:iam::$(AWS_ACCOUNT_ID):role/$(AWS_LAMBDA_ROLE_NAME)
 
 SHARED_LAYER_NAME=olass-shared-layer
@@ -12,19 +12,20 @@ LAYER_SHARED_VERSION := $(shell aws lambda list-layer-versions \
 	--layer-name $(SHARED_LAYER_NAME) \
 	--region $(REGION) \
 	--query 'LayerVersions[0].Version' \
-	--output text)
+	--output text | tr '\n' ' ' | awk '{print $$1}')
 
 LAYER_BASE_VERSION := $(shell aws lambda list-layer-versions \
 	--layer-name $(BASE_LAYER_NAME) \
 	--region $(REGION) \
 	--query 'LayerVersions[0].Version' \
-	--output text)
+	--output text | tr '\n' ' ' | awk '{print $$1}')
 
 .PHONY: zip create update deploy
 
 zip:
-	rm -f $(HANDLER_ZIP)
-	zip -r $(HANDLER_ZIP) .
+	cd ../../ && rm -f $(HANDLER_ZIP)
+	cd ../../ && zip -r $(HANDLER_ZIP) . -x "deploy/*"
+	mv ../../$(HANDLER_ZIP) .
 
 create: zip
 	aws lambda create-function \
@@ -33,8 +34,8 @@ create: zip
 		--role $(ROLE_ARN) \
 		--handler handler.lambda_handler \
 		--zip-file fileb://$(HANDLER_ZIP) \
-		--timeout 100 \
-		--memory-size 128 \
+		--timeout 300 \
+		--memory-size 256 \
 		--region $(REGION) \
 		--architectures arm64 \
 		--layers \
