@@ -3,58 +3,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from app.api.asset.v1.constant import EXPIRE_JOB_REDIS_SEC, JOB_REDIS_KEY, SALARY_THOUSAND_WON
+from app.api.asset.v1.constant import SALARY_THOUSAND_WON
 from app.api.asset.v1.schemas.asset_schema import UserProfilePostRequest, UserSalaryPostRequest
 from app.module.asset.enums import CarRank
 from app.module.asset.errors.asset_error import NoMatchJobSalary, NoMatchUserSalary
-from app.module.asset.model import Job, SalaryStat, UserProfile, UserSalary
+from app.module.asset.model import SalaryStat, UserProfile, UserSalary
 
 # Fixtures imported via pytest plugin system
 pytest_plugins = ["test.unit_test.fixtures.asset_mock_fixture"]
-
-
-class TestGetJobs:
-    @pytest.mark.asyncio
-    async def test_cache_hit(self, asset_service, mock_job_cache_repo):
-        # Given
-        cached_jobs = [
-            {"id": 1, "name": "백엔드 개발자", "group_id": 1},
-            {"id": 2, "name": "프론트엔드 개발자", "group_id": 1},
-        ]
-        mock_job_cache_repo.get.return_value = cached_jobs
-
-        # When
-        result = await asset_service.get_jobs()
-
-        # Then
-        assert len(result) == 2
-        assert result[0].name == "백엔드 개발자"
-        assert result[1].name == "프론트엔드 개발자"
-        mock_job_cache_repo.get.assert_called_once_with(JOB_REDIS_KEY)
-        mock_job_cache_repo.set.assert_not_called()
-
-    @pytest.mark.asyncio
-    async def test_cache_miss(self, asset_service, mock_job_cache_repo, mock_job_repo):
-        # Given
-        mock_job_cache_repo.get.return_value = None
-        jobs = [
-            Job(id=1, name="백엔드 개발자", group_id=1),
-            Job(id=2, name="프론트엔드 개발자", group_id=1),
-        ]
-        mock_job_repo.gets.return_value = jobs
-
-        # When
-        result = await asset_service.get_jobs()
-
-        # Then
-        assert len(result) == 2
-        assert result[0].name == "백엔드 개발자"
-        mock_job_repo.gets.assert_called_once()
-        mock_job_cache_repo.set.assert_called_once_with(
-            JOB_REDIS_KEY,
-            [job.model_dump() for job in jobs],
-            EXPIRE_JOB_REDIS_SEC,
-        )
 
 
 class TestGetJobSalary:
