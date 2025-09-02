@@ -378,13 +378,6 @@ resource "aws_elastic_beanstalk_environment" "environment" {
     value     = "mysql+aiomysql://${var.db_username}:${var.db_password}@${aws_db_instance.mysql.endpoint}/${var.db_name}"
   }
 
-  # Redis 설정
-  setting {
-    namespace = "aws:elasticbeanstalk:application:environment"
-    name      = "${upper(var.environment)}_REDIS_HOST"
-    value     = aws_elasticache_replication_group.redis.primary_endpoint_address
-  }
-
   # Rolling deployments 설정
   setting {
     namespace = "aws:elasticbeanstalk:command"
@@ -424,8 +417,7 @@ resource "aws_elastic_beanstalk_environment" "environment" {
   }
 
   depends_on = [
-    aws_db_instance.mysql,
-    aws_elasticache_replication_group.redis
+    aws_db_instance.mysql
   ]
 
   tags = {
