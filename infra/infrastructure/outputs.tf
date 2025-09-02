@@ -35,22 +35,6 @@ output "rds_identifier" {
   value       = aws_db_instance.mysql.identifier
 }
 
-# ElastiCache (Valkey) 출력
-output "redis_endpoint" {
-  description = "Valkey 엔드포인트"
-  value       = aws_elasticache_replication_group.redis.primary_endpoint_address
-}
-
-output "redis_port" {
-  description = "Valkey 포트"
-  value       = aws_elasticache_replication_group.redis.port
-}
-
-output "redis_cluster_id" {
-  description = "Valkey 클러스터 ID"
-  value       = aws_elasticache_replication_group.redis.replication_group_id
-}
-
 # 보안 그룹 출력
 output "eb_security_group_id" {
   description = "Elastic Beanstalk 보안 그룹 ID"
@@ -60,11 +44,6 @@ output "eb_security_group_id" {
 output "rds_security_group_id" {
   description = "RDS 보안 그룹 ID"
   value       = aws_security_group.rds_sg.id
-}
-
-output "redis_security_group_id" {
-  description = "Redis 보안 그룹 ID"
-  value       = aws_security_group.redis_sg.id
 }
 
 # 환경 정보
