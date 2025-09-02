@@ -423,6 +423,11 @@ resource "aws_elastic_beanstalk_environment" "environment" {
     value     = join(",", data.aws_subnets.public.ids)
   }
 
+  depends_on = [
+    aws_db_instance.mysql,
+    aws_elasticache_replication_group.redis
+  ]
+
   tags = {
     Name        = "${var.project_name}-${var.environment}-eb-env"
     Environment = var.environment
